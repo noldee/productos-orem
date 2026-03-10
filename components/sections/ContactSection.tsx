@@ -26,7 +26,6 @@ export function ContactSection() {
     // Construir el mensaje con formato (usando %0A para saltos de línea y * para negritas)
     const textoMensaje = `¡Hola! Vengo de la página web Servicios Generales Ore M & G S.A.C.*Nombre:* ${nombre}%0A*Correo:* ${correo || 'No especificado'}%0A*Mensaje:* ${mensaje}`;
     
-    // Crear la URL de la API de WhatsApp
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${textoMensaje}`;
 
     // Abrir WhatsApp en una nueva pestaña
