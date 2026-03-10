@@ -7,7 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { AboutSection } from "@/components/sections/AboutSection";
 import { ReviewsSection } from "@/components/sections/ReviewsSection";
-import { BentoSection } from "@/components/sections/BentoSection";
+import { ContactSection } from "@/components/sections/ContactSection";
 import { TOKENS } from "@/lib/data";
 import { ServicesSection } from "@/components/sections/ServicesSection";
 
@@ -32,7 +32,7 @@ export default function Page() {
           <AboutSection />
           <ServicesSection />
           <ReviewsSection />
-          <BentoSection />
+          <ContactSection />
         </main>
         <Footer />
       </div>
