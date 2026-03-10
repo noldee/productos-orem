@@ -131,6 +131,7 @@
   }
   html {
     overflow-x: hidden;
+    scroll-behavior: smooth;
   }
   body {
     @apply bg-background text-foreground;
@@ -144,32 +145,6 @@
   }
 }
 
-/* Para Chrome, Safari y Edge */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f9f7f2; /* Tu color crema */
-}
-
-::-webkit-scrollbar-thumb {
-  background: #3e5245; /* Tu color musgo */
-  border-radius: 10px;
-}
-
-/* Para Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #3e5245 #f9f7f2;
-}
-
-/* Estilo específico para el interior del carrito (opcional) */
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #3e5245;
-  border: 2px solid #f9f7f2; /* Esto le da un efecto de 'aire' a los lados */
-  border-radius: 10px;
-}
 @keyframes marquee-sync {
   0% {
     transform: translateX(0);

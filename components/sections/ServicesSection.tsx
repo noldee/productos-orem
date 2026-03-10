@@ -1,32 +1,58 @@
 "use client";
 
-import { Leaf, ShieldCheck, Sparkles, ChevronRight } from "lucide-react";
-import { services } from "@/lib/data";
+import { ShoppingBag, Truck, PackageCheck, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
+// Cambiamos los iconos para que representen comercio y logística
 const ICONS: Record<string, ReactNode> = {
-  leaf: <Leaf size={20} strokeWidth={1.5} />,
-  shield: <ShieldCheck size={20} strokeWidth={1.5} />,
-  sparkles: <Sparkles size={20} strokeWidth={1.5} />,
+  tienda: <ShoppingBag size={20} strokeWidth={1.5} />,
+  abastecimiento: <Truck size={20} strokeWidth={1.5} />,
+  mayorista: <PackageCheck size={20} strokeWidth={1.5} />,
 };
+
+// Datos internos para que no dependas de archivos externos si no los tienes listos
+const storeServices = [
+  {
+    iconName: "tienda",
+    title: "Venta Minorista",
+    desc: "Productos de limpieza premium para el cuidado diario de tu hogar con fragancias exclusivas.",
+    icon: "tienda",
+  },
+  {
+    iconName: "abastecimiento",
+    title: "Abastecimiento Corporativo",
+    desc: "Suministro constante de insumos de higiene para oficinas, locales comerciales y empresas.",
+    icon: "abastecimiento",
+  },
+  {
+    iconName: "mayorista",
+    title: "Venta por Mayor",
+    desc: "Precios especiales y stock garantizado para revendedores y proveedores del sector.",
+    icon: "mayorista",
+  },
+];
 
 export function ServicesSection() {
   return (
-    /* CORRECCIÓN: bg-crema para mantener la paleta orgánica */
-    <section className="py-20 md:py-32 px-6 bg-crema/30">
+    <section className="py-20 md:py-32 px-6 bg-crema/30" id="servicios">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-20 gap-4">
           <h2 className="font-serif text-4xl md:text-6xl italic text-stone-900 leading-tight">
-            Soluciones <br className="hidden md:block" />
-            <span className="not-italic text-stone-300">a medida</span>
+            Nuestros <br className="hidden md:block" />
+            <span className="not-italic text-stone-300">Suministros</span>
           </h2>
-          <p className="font-sans text-stone-400 text-[9px] md:text-[10px] uppercase tracking-[0.3em] pb-2 border-b border-stone-200">
-            Servicios Exclusivos
-          </p>
+          <div className="flex flex-col items-start md:items-end">
+            <p className="font-sans text-stone-400 text-[9px] md:text-[10px] uppercase tracking-[0.3em] pb-2 border-b border-stone-200">
+              Distribución y Venta
+            </p>
+            <p className="font-sans text-stone-400 text-[9px] uppercase tracking-widest mt-2">
+              Atención a particulares y proveedores
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          {services.map((service, i) => (
+          {storeServices.map((service, i) => (
             <div
               key={i}
               className="group p-8 md:p-10 rounded-[2rem] bg-white border border-stone-100 hover:border-stone-300 hover:shadow-xl hover:shadow-stone-200/40 transition-all duration-500 flex flex-col items-start"
@@ -45,7 +71,7 @@ export function ServicesSection() {
               </p>
 
               <button className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold flex items-center gap-2 text-stone-400 group-hover:text-musgo transition-all">
-                Saber más
+                Consultar Catálogo
                 <ChevronRight
                   size={14}
                   className="group-hover:translate-x-1 transition-transform"

@@ -1,5 +1,5 @@
 import { reviewsRow1, reviewsRow2 } from "@/lib/data";
-import { ReviewCard } from "@/components/ui/ReviewCard";
+import { ReviewCard } from "@/components/reviews/ReviewCard";
 
 export function ReviewsSection() {
   return (

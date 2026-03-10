@@ -1,4 +1,4 @@
-// ─── TOKENS ───────────────────────────────────────────────────────────────
+// ─── TOKENS (Se mantienen igual para coherencia visual) ───────────────
 export const TOKENS = {
   crema: "#F9F7F2",
   negro: "#1A1A18",
@@ -9,7 +9,7 @@ export const TOKENS = {
   textoGris: "#66625B",
 } as const;
 
-// ─── REVIEWS ──────────────────────────────────────────────────────────────
+// ─── REVIEWS PERUANAS ──────────────────────────────────────────────────
 export interface Review {
   name: string;
   role: string;
@@ -17,74 +17,12 @@ export interface Review {
   img: string;
 }
 
-export const reviewsRow1: Review[] = [
-  {
-    name: "Alessandra V.",
-    role: "Arquitecta",
-    text: "El aroma transformó mi espacio por completo.",
-    img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200",
-  },
-  {
-    name: "Juan P.",
-    role: "Hotel Boutique",
-    text: "La línea corporativa es de otro nivel, muy premium.",
-    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200",
-  },
-  {
-    name: "Carla M.",
-    role: "Home Decor",
-    text: "Suscripción mensual recomendada 100%.",
-    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
-  },
-];
-
-export const reviewsRow2: Review[] = [
-  {
-    name: "Roberto F.",
-    role: "Oficinas",
-    text: "Paz absoluta en medio del caos de la ciudad.",
-    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200",
-  },
-  {
-    name: "Lucía T.",
-    role: "Socia",
-    text: "Diseño olfativo que mis clientes siempre notan.",
-    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200",
-  },
-  {
-    name: "Mateo S.",
-    role: "Diseñador",
-    text: "Increíble atención al detalle y presentación.",
-    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200",
-  },
-];
-
-// ─── SERVICIOS ────────────────────────────────────────────────────────────
 export interface Service {
   title: string;
   desc: string;
-  iconName: "leaf" | "shield" | "sparkles";
+  iconName: string;
 }
 
-export const services: Service[] = [
-  {
-    title: "Suscripción Hogar",
-    desc: "Recargas mensuales automáticas.",
-    iconName: "leaf",
-  },
-  {
-    title: "Línea Corporativa",
-    desc: "Higiene premium para boutiques y hoteles.",
-    iconName: "shield",
-  },
-  {
-    title: "Fragancias de Autor",
-    desc: "Marketing olfativo exclusivo de marca.",
-    iconName: "sparkles",
-  },
-];
-
-// ─── CARRITO ──────────────────────────────────────────────────────────────
 export interface CartItem {
   id: number;
   name: string;
@@ -94,24 +32,86 @@ export interface CartItem {
   img: string;
 }
 
+export const reviewsRow1: Review[] = [
+  {
+    name: "Milagros Cueva",
+    role: "Miraflores / Airbnb Host",
+    text: "Mis huéspedes siempre comentan lo bien que huele el depa. Pureza elevó mis calificaciones en limpieza.",
+    img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200",
+  },
+  {
+    name: "Renzo Ferrero",
+    role: "Cafetería de Especialidad",
+    text: "El desengrasante Menta Soft es increíble, limpia sin dejar ese olor químico molesto en la barra.",
+    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200",
+  },
+  {
+    name: "Luciana Riva Agüero",
+    role: "Diseño de Interiores",
+    text: "Uso la línea corporativa en todos mis proyectos en San Isidro. Estética y aroma impecable.",
+    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
+  },
+];
+
+export const reviewsRow2: Review[] = [
+  {
+    name: "Gianmarco Soto",
+    role: "Chef / Restaurante",
+    text: "Finalmente un proveedor que entiende que la limpieza también es parte de la experiencia del cliente.",
+    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200",
+  },
+  {
+    name: "Ximena de la Jara",
+    role: "Socia en Boutique Cusco",
+    text: "Las fragancias de autor conectan perfecto con el concepto de nuestra marca. Atención A1.",
+    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200",
+  },
+  {
+    name: "Joaquín Belaúnde",
+    role: "Estudio de Yoga",
+    text: "La lavanda y eucalipto crean el ambiente de paz que mis alumnos necesitan apenas entran.",
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200",
+  },
+];
+
+// ─── SERVICIOS EN PERÚ ──────────────────────────────────────────────────
+export const services: Service[] = [
+  {
+    title: "Suscripción Lima & Provincias",
+    desc: "Recargas programadas para que nunca te falte stock en casa o negocio.",
+    iconName: "leaf",
+  },
+  {
+    title: "Venta Mayorista B2B",
+    desc: "Precios competitivos y facturación inmediata para empresas peruanas.",
+    iconName: "shield",
+  },
+  {
+    title: "Despacho Express",
+    desc: "Envíos en 24h para Lima Metropolitana y envíos rápidos a todo el Perú.",
+    iconName: "sparkles",
+  },
+];
+
+// ─── CARRITO (Precios en Soles sugeridos) ─────────────────────────────────
 export const initialCartItems: CartItem[] = [
   {
     id: 1,
-    name: "Lavanda & Eucalipto Pro",
-    variant: "Edición Botánica — 500ml",
-    price: 45.0,
+    name: "Eucalipto de los Andes Pro",
+    variant: "Colección Serranía — 500ml",
+    price: 49.0, // Precio en S/.
     qty: 1,
     img: "https://plus.unsplash.com/premium_photo-1684407616442-87bf0d69e8b4?q=80&w=870&auto=format&fit=crop",
   },
   {
     id: 2,
-    name: "Desengrasante Menta Soft",
-    variant: "Extracto Puro — 500ml",
-    price: 32.0,
+    name: "Limpia Todo Cítrico Selva",
+    variant: "Extractos Naturales — 500ml",
+    price: 35.0, // Precio en S/.
     qty: 1,
     img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=400",
   },
 ];
 
-export const SHIPPING_TARGET = 150;
-export const SHIPPING_COST = 15;
+export const SHIPPING_TARGET = 150; // Envío gratis a partir de 150 soles
+export const SHIPPING_COST = 12; // Costo de envío estándar en Lima

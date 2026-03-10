@@ -6,9 +6,9 @@ import Link from "next/link";
 import { ArrowLeft, SlidersHorizontal, X } from "lucide-react";
 import { CATEGORIAS } from "@/lib/products";
 import { useCatalogFilters } from "@/hooks/useCatalogFilters";
-import { ProductCard } from "@/components/ui/ProductCard";
-import { FilterSidebar } from "@/components/ui/FilterSidebar";
-import { CartSheet } from "@/components/ui/CartSheet";
+import { ProductCard } from "@/components/products/ProductCard";
+import { FilterSidebar } from "@/components/products/FilterSidebar";
+import { CartSheet } from "@/components/cart/CartSheet";
 
 export default function CatalogosPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

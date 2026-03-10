@@ -5,7 +5,10 @@ import Image from "next/image";
 export function AboutSection() {
   return (
     /* CORRECCIÓN: Usamos bg-white nativo y un padding responsivo */
-    <section className="py-20 md:py-32 px-6 bg-white overflow-hidden">
+    <section
+      className="py-20 md:py-32 px-6 bg-white overflow-hidden"
+      id="about"
+    >
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         {/* LADO IMAGEN */}
         <div className="relative">
@@ -48,13 +51,15 @@ export function AboutSection() {
           {/* Grid de stats con bordes corregidos */}
           <div className="pt-6 border-t border-stone-100 grid grid-cols-2 gap-8">
             <div>
-              <h5 className="font-serif text-3xl italic text-musgo">100%</h5>
+              <h5 className="font-serif text-2xl italic text-musgo">100%</h5>
               <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400 font-bold mt-1">
                 Biodegradable
               </p>
             </div>
             <div>
-              <h5 className="font-serif text-3xl italic text-musgo">Lince</h5>
+              <h5 className="font-serif text-2xl italic text-musgo">
+                San Juan de Lurigancho
+              </h5>
               <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400 font-bold mt-1">
                 Nuestro Hub
               </p>

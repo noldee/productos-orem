@@ -38,7 +38,7 @@ export function ContactSection() {
   };
 
   return (
-    <section className="py-20 md:py-32 px-6 relative">
+    <section className="py-20 md:py-32 px-6 relative" id="contacto">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <div className="md:col-span-2 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] relative overflow-hidden flex flex-col bg-negro">

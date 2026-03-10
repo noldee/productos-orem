@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { CheckFilter } from "@/components/ui/CheckFilter";
+import { CheckFilter } from "@/components/products/CheckFilter";
 import { LINEAS, AROMAS, FORMATOS } from "@/lib/products";
 
 interface FilterSidebarProps {
