@@ -8,6 +8,13 @@ import { User2Icon, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import gsap from "gsap";
 
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+
 const NAV_LINKS = [
   { name: "La Marca", href: "#about" },
   { name: "Suministros", href: "#servicios" },
@@ -17,7 +24,8 @@ const NAV_LINKS = [
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const { isAdmin, loading } = useAuth();
+
+  const { user, isAdmin, loading, logout } = useAuth();
 
   const menuRef = useRef<HTMLDivElement>(null);
   const linksRef = useRef<(HTMLAnchorElement | HTMLDivElement | null)[]>([]);
@@ -26,6 +34,7 @@ export function Navbar() {
     const update = () => {
       if (!isOpen) setIsScrolled(window.scrollY > 50);
     };
+
     window.addEventListener("scroll", update);
 
     if (isOpen) {
@@ -40,6 +49,7 @@ export function Navbar() {
       document.body.style.top = "";
       document.body.style.width = "";
       document.body.style.overflow = "";
+
       if (scrollY) window.scrollTo(0, parseInt(scrollY || "0") * -1);
     }
 
@@ -57,7 +67,9 @@ export function Navbar() {
         clipPath: "circle(150% at 100% 0%)",
         ease: "power4.inOut",
       });
+
       const validLinks = linksRef.current.filter((el) => el !== null);
+
       gsap.fromTo(
         validLinks,
         { y: 30, opacity: 0 },
@@ -79,7 +91,6 @@ export function Navbar() {
     }
   }, [isOpen]);
 
-  // Altura reducida para evitar exceso de margen
   const navBgClass = isOpen
     ? "bg-transparent border-transparent pt-6 pb-4"
     : isScrolled
@@ -106,7 +117,7 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Links Desktop (Cambiado a lg para iPad) */}
+          {/* Links Desktop */}
           <div className="hidden lg:flex gap-10 items-center">
             {NAV_LINKS.map((item) => (
               <Link
@@ -122,41 +133,87 @@ export function Navbar() {
           <div className="flex items-center gap-6 z-50">
             {!isOpen && <CartSheet />}
 
-            {/* Hamburguesa adaptada a iPad */}
+            {/* Hamburguesa */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="group flex flex-col items-end justify-center gap-1.5 w-8 h-8 focus:outline-none"
               aria-label="Menu"
             >
               <div
-                className={`h-[1.5px] bg-current transition-all duration-500 ${isOpen ? "w-7 rotate-45 translate-y-[4px] text-crema" : "w-7 text-negro lg:hidden"}`}
+                className={`h-[1.5px] bg-current transition-all duration-500 ${
+                  isOpen
+                    ? "w-7 rotate-45 translate-y-[4px] text-crema"
+                    : "w-7 text-negro lg:hidden"
+                }`}
               />
               <div
-                className={`h-[1.5px] bg-current transition-all duration-500 ${isOpen ? "w-7 -rotate-45 -translate-y-[4px] text-crema" : "w-4 text-negro group-hover:w-7 lg:hidden"}`}
+                className={`h-[1.5px] bg-current transition-all duration-500 ${
+                  isOpen
+                    ? "w-7 -rotate-45 -translate-y-[4px] text-crema"
+                    : "w-4 text-negro group-hover:w-7 lg:hidden"
+                }`}
               />
             </button>
 
-            {/* Botón Ingresar */}
+            {/* Botón derecho Desktop */}
             <div className="hidden lg:block">
               {!loading && !isOpen && (
-                <Link
-                  href={isAdmin ? "/dashboard" : "/login"}
-                  className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[10px] uppercase tracking-widest font-bold text-crema transition-all active:scale-95 ${isAdmin ? "bg-musgo" : "bg-negro"}`}
-                >
-                  {isAdmin ? (
-                    <LayoutDashboard size={13} />
-                  ) : (
-                    <User2Icon size={13} />
+                <>
+                  {/* ADMIN */}
+                  {isAdmin && (
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-full text-[10px] uppercase tracking-widest font-bold text-crema bg-musgo transition-all active:scale-95"
+                    >
+                      <LayoutDashboard size={13} />
+                      <span>Admin</span>
+                    </Link>
                   )}
-                  <span>{isAdmin ? "Admin" : "Ingresar"}</span>
-                </Link>
+
+                  {/* USER */}
+                  {user && !isAdmin && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-3 hover:opacity-80 transition">
+                          <div className="w-8 h-8 rounded-full bg-negro text-crema flex items-center justify-center font-bold text-sm uppercase">
+                            {user.email?.[0]}
+                          </div>
+
+                          <span className="text-xs font-semibold text-negro">
+                            {user.email?.split("@")[0]}
+                          </span>
+                        </button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem
+                          className="cursor-pointer text-red-500"
+                          onClick={logout}
+                        >
+                          Cerrar sesión
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
+                  {/* SIN LOGIN */}
+                  {!user && (
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-full text-[10px] uppercase tracking-widest font-bold text-crema bg-negro transition-all active:scale-95"
+                    >
+                      <User2Icon size={13} />
+                      <span>Ingresar</span>
+                    </Link>
+                  )}
+                </>
               )}
             </div>
           </div>
         </nav>
       </motion.header>
 
-      {/* Menú Móvil / iPad Overlay */}
+      {/* Menú móvil */}
       <div
         ref={menuRef}
         style={{ clipPath: "circle(0% at 100% 0%)" }}
@@ -166,6 +223,7 @@ export function Navbar() {
           <span className="font-sans text-[10px] uppercase tracking-[0.5em] text-stone-500 mb-2">
             Menú
           </span>
+
           {NAV_LINKS.map((item, i) => (
             <Link
               key={item.name}
@@ -179,6 +237,7 @@ export function Navbar() {
               {item.name}
             </Link>
           ))}
+
           <div
             ref={(el) => {
               linksRef.current[NAV_LINKS.length] = el;
@@ -186,14 +245,38 @@ export function Navbar() {
             className="pt-12 mt-4 border-t border-stone-800"
           >
             {!loading && (
-              <Link
-                href={isAdmin ? "/dashboard" : "/login"}
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 text-crema hover:text-terracota font-sans text-xs uppercase tracking-[0.3em]"
-              >
-                {isAdmin ? "Dashboard de Control" : "Acceso Clientes"}
-                <User2Icon size={18} className="text-terracota" />
-              </Link>
+              <>
+                {isAdmin && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-4 text-crema hover:text-terracota font-sans text-xs uppercase tracking-[0.3em]"
+                  >
+                    Dashboard de Control
+                    <LayoutDashboard size={18} className="text-terracota" />
+                  </Link>
+                )}
+
+                {user && !isAdmin && (
+                  <div className="flex items-center gap-4 text-crema font-sans text-xs uppercase tracking-[0.3em]">
+                    <div className="w-8 h-8 rounded-full bg-stone-700 text-crema flex items-center justify-center font-bold text-sm uppercase">
+                      {user.email?.[0]}
+                    </div>
+                    <span>{user.email}</span>
+                  </div>
+                )}
+
+                {!user && (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-4 text-crema hover:text-terracota font-sans text-xs uppercase tracking-[0.3em]"
+                  >
+                    Acceso Clientes
+                    <User2Icon size={18} className="text-terracota" />
+                  </Link>
+                )}
+              </>
             )}
           </div>
         </div>

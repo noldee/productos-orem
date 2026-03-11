@@ -13,6 +13,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
+import { api } from "@/lib/axios";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -24,15 +25,14 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password)
-      return setError("Por favor, llena todos los campos");
+    if (!name || !email || !password) return setError("Llena todos los campos");
     setError("");
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await api.post("/auth/register", { name, email, password });
       router.push("/login");
-    } catch (err) {
-      setError("Error al crear la cuenta");
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? "Error al crear la cuenta");
     } finally {
       setLoading(false);
     }

@@ -1,22 +1,15 @@
+// lib/api.ts
 import axios from "axios";
+import Cookies from "js-cookie";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: { "Content-Type": "application/json" },
 });
 
+// Interceptor: agrega el token automáticamente a TODAS las requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  const token = Cookies.get("access_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-export async function login(email: string, password: string) {
-  const { data } = await api.post("/auth/login", { email, password });
-  localStorage.setItem("access_token", data.access_token);
-
-  // traer el usuario con el rol
-  const { data: me } = await api.get("/users/me");
-  return { ...data, user: me };
-}

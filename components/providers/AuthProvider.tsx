@@ -1,83 +1,62 @@
 "use client";
-
 import { createContext, useContext, useEffect, useState } from "react";
-import {
-  login as loginFn,
-  logout as logoutFn,
-  getToken,
-  getStoredUser,
-} from "@/lib/auth";
 import { api } from "@/lib/api";
+import { saveToken, getToken, removeToken } from "@/lib/auth";
 
-interface User {
+type User = {
   id: string;
   email: string;
   role: "USER" | "ADMIN";
-}
+};
 
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<any>;
+  isAdmin: boolean; // ← agrega esto
+  login: (email: string, password: string) => Promise<User>;
   logout: () => void;
-  isAdmin: boolean;
-}
+};
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === "undefined") return null;
-    return getStoredUser();
-  });
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Restaura sesión desde cookie
     const token = getToken();
-    if (token && !user) {
-      setLoading(true);
-      api
-        .get("/users/me")
-        .then(({ data }) => {
-          setUser(data);
-          localStorage.setItem("user", JSON.stringify(data));
-        })
-        .catch(() => {
-          logoutFn();
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
+    const storedUser = localStorage.getItem("user");
+    if (token && storedUser) {
+      setUser(JSON.parse(storedUser));
     }
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const data = await loginFn(email, password);
+  const login = async (email: string, password: string): Promise<User> => {
+    const { data } = await api.post("/auth/login", { email, password });
+    saveToken(data.access_token);
+    localStorage.setItem("user", JSON.stringify(data.user));
     setUser(data.user);
-    return data;
+    return data.user;
   };
 
   const logout = () => {
-    logoutFn();
+    removeToken();
+    localStorage.removeItem("user");
     setUser(null);
   };
+  const isAdmin = user?.role === "ADMIN";
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        logout,
-        isAdmin: user?.role === "ADMIN",
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, isAdmin, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
-}
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  return ctx;
+};

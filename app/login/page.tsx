@@ -21,10 +21,10 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const data = await login(email, password);
-      await router.push(data.user.role === "ADMIN" ? "/dashboard" : "/");
+      const user = await login(email, password);
+      router.push(user.role === "ADMIN" ? "/dashboard" : "/");
       router.refresh();
-    } catch (e) {
+    } catch {
       setError("Credenciales incorrectas. Intenta de nuevo.");
     } finally {
       setLoading(false);

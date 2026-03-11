@@ -1,34 +1,42 @@
+import Cookies from "js-cookie";
 import { api } from "./api";
 
+const TOKEN_KEY = "access_token";
+
+// ── Token ──────────────────────────────────────
+export const saveToken = (token: string) => {
+  Cookies.set(TOKEN_KEY, token, {
+    expires: 7,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+};
+
+export const getToken = () => Cookies.get(TOKEN_KEY);
+
+export const removeToken = () => Cookies.remove(TOKEN_KEY);
+
+// ── Auth ───────────────────────────────────────
 export async function login(email: string, password: string) {
   const { data } = await api.post("/auth/login", { email, password });
-  localStorage.setItem("access_token", data.access_token);
+  saveToken(data.access_token);
 
-  const { data: me } = await api.get("/users/me");
-  localStorage.setItem("user", JSON.stringify(me));
+  const { data: me } = await api.get("/users/me", {
+    headers: { Authorization: `Bearer ${data.access_token}` },
+  });
 
-  return { ...data, user: me };
+  return { access_token: data.access_token, user: me };
 }
 
-export async function register(email: string, password: string) {
-  const { data } = await api.post("/auth/register", { email, password });
+export async function register(email: string, password: string, name?: string) {
+  const { data } = await api.post("/auth/register", { email, password, name });
   return data;
 }
 
 export function logout() {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("user");
-}
-
-export function getToken() {
-  return localStorage.getItem("access_token");
-}
-
-export function getStoredUser() {
-  const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
+  removeToken();
 }
 
 export function isAuthenticated() {
-  return !!localStorage.getItem("access_token");
+  return !!getToken();
 }
