@@ -30,7 +30,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "ORE M — Limpieza Botánica Premium",
+  title: "M&G Servicios Generales",
   description: "Productos de limpieza premium con ingredientes naturales peruanos.",
   icons: {
     icon: "/logo.png",
