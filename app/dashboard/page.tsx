@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { api } from "@/lib/api";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas-pro";
 import {
@@ -30,12 +30,17 @@ import {
   ShoppingBag,
 } from "lucide-react";
 
-const fadeUp = {
+const fadeUp: Variants = {
+  // Añade el tipo aquí
   hidden: { opacity: 0, y: 15 },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.05, duration: 0.4, ease: [0.19, 1, 0.22, 1] },
+    transition: {
+      delay: i * 0.05,
+      duration: 0.4,
+      ease: [0.19, 1, 0.22, 1] as const,
+    },
   }),
 };
 
