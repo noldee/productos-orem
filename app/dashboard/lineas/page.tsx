@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Pencil, Trash2, Plus, Check, X, Loader2, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, Loader2, Layers, Eye, Info } from "lucide-react";
 
-// Importaciones de Shadcn UI (Asegurate de tener estos componentes instalados)
 import {
   Table,
   TableBody,
@@ -15,13 +14,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface Linea {
   id: number;
@@ -32,17 +32,25 @@ interface Linea {
 export default function LineasPage() {
   const [lineas, setLineas] = useState<Linea[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newName, setNewName] = useState("");
-  const [newDesc, setNewDesc] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDesc, setEditDesc] = useState("");
+
+  // Modales
+  const [showModal, setShowModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+
+  // Estados de datos
+  const [selectedLinea, setSelectedLinea] = useState<Linea | null>(null);
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchLineas = async () => {
+    setLoading(true);
     try {
       const { data } = await api.get("/lineas");
-      setLineas(data);
+      setLineas(Array.isArray(data) ? data : data?.data || []);
+    } catch (error) {
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
@@ -52,214 +60,256 @@ export default function LineasPage() {
     fetchLineas();
   }, []);
 
-  const create = async () => {
-    if (!newName.trim()) return;
-    await api.post("/lineas", { name: newName, description: newDesc || null });
-    setNewName("");
-    setNewDesc("");
-    setCreating(false);
-    fetchLineas();
+  const openForm = (linea?: Linea) => {
+    if (linea) {
+      setSelectedLinea(linea);
+      setName(linea.name);
+      setDesc(linea.description ?? "");
+    } else {
+      setSelectedLinea(null);
+      setName("");
+      setDesc("");
+    }
+    setShowModal(true);
   };
 
-  const update = async (id: number) => {
-    await api.put(`/lineas/${id}`, {
-      name: editName,
-      description: editDesc || null,
-    });
-    setEditingId(null);
-    fetchLineas();
+  const openView = (linea: Linea) => {
+    setSelectedLinea(linea);
+    setShowViewModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      const payload = { name, description: desc || null };
+      if (selectedLinea) {
+        await api.put(`/lineas/${selectedLinea.id}`, payload);
+      } else {
+        await api.post("/lineas", payload);
+      }
+      setShowModal(false);
+      fetchLineas();
+    } finally {
+      setSaving(false);
+    }
   };
 
   const remove = async (id: number) => {
-    if (!confirm("¿Eliminar esta línea?")) return;
-    await api.delete(`/lineas/${id}`);
-    fetchLineas();
-  };
-
-  const startEdit = (linea: Linea) => {
-    setEditingId(linea.id);
-    setEditName(linea.name);
-    setEditDesc(linea.description ?? "");
+    if (!confirm("¿Deseas eliminar esta línea?")) return;
+    setDeletingId(id);
+    try {
+      await api.delete(`/lineas/${id}`);
+      fetchLineas();
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
-    <div className="w-full space-y-6 p-4 md:p-8 animate-in fade-in duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Líneas de Productos
-          </h1>
-          <p className="text-muted-foreground">
-            Gestiona las categorías principales de tu inventario.
-          </p>
+    <div className="w-full space-y-8 p-4 md:p-10 bg-white min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-stone-50 p-6 md:p-8 rounded-[32px] border border-stone-100 shadow-sm">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-[22px] bg-stone-900 flex items-center justify-center shadow-xl shadow-stone-200">
+            <Layers size={28} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-stone-900">
+              Líneas
+            </h1>
+            <p className="text-stone-500 font-medium">
+              {lineas.length} registros encontrados
+            </p>
+          </div>
         </div>
         <Button
-          onClick={() => setCreating(true)}
-          disabled={creating}
-          className="bg-stone-900 hover:bg-stone-800 text-white rounded-full px-6"
+          onClick={() => openForm()}
+          className="w-full md:w-auto bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-14 px-8 gap-3"
         >
-          <Plus className="mr-2 h-4 w-4" /> Nueva línea
+          <Plus size={20} /> Nueva Línea
         </Button>
       </div>
 
-      {/* Formulario de Creación */}
-      {creating && (
-        <Card className="border-2 border-stone-100 shadow-md">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-              <div className="md:col-span-4 space-y-2">
-                <label className="text-xs font-bold uppercase text-stone-500">
-                  Nombre
-                </label>
-                <Input
-                  autoFocus
-                  placeholder="Ej: Línea Facial"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-6 space-y-2">
-                <label className="text-xs font-bold uppercase text-stone-500">
-                  Descripción
-                </label>
-                <Input
-                  placeholder="Descripción opcional..."
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-2 flex gap-2">
-                <Button
-                  onClick={create}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setCreating(false)}
-                  className="flex-1"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Tabla Principal */}
-      <Card className="border-none shadow-sm overflow-hidden bg-white">
+      <Card className="border-none shadow-2xl shadow-stone-100 rounded-[32px] overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-stone-300" />
+            <div className="flex justify-center items-center py-32 text-stone-200">
+              <Loader2 className="h-10 w-10 animate-spin" />
             </div>
           ) : (
-            <Table>
-              <TableHeader className="bg-stone-50/50">
-                <TableRow>
-                  <TableHead className="w-[30%] font-bold uppercase text-[11px] tracking-wider">
-                    Nombre
-                  </TableHead>
-                  <TableHead className="font-bold uppercase text-[11px] tracking-wider">
-                    Descripción
-                  </TableHead>
-                  <TableHead className="text-right font-bold uppercase text-[11px] tracking-wider">
-                    Acciones
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {lineas.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={3}
-                      className="h-32 text-center text-muted-foreground"
-                    >
-                      No se encontraron líneas registradas.
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-stone-50/50">
+                  <TableRow className="border-stone-100">
+                    <TableHead className="py-6 pl-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-24">
+                      ID
+                    </TableHead>
+                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest w-[30%]">
+                      Nombre
+                    </TableHead>
+                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                      Descripción
+                    </TableHead>
+                    <TableHead className="text-right pr-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                      Acciones
+                    </TableHead>
                   </TableRow>
-                ) : (
-                  lineas.map((linea) => (
-                    <TableRow
-                      key={linea.id}
-                      className="group transition-colors hover:bg-stone-50/50"
-                    >
-                      {editingId === linea.id ? (
-                        <>
-                          <TableCell>
-                            <Input
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={editDesc}
-                              onChange={(e) => setEditDesc(e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right space-x-2">
-                            <Button
-                              size="sm"
-                              onClick={() => update(linea.id)}
-                              className="bg-stone-900 text-white"
-                            >
-                              <Check size={14} />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setEditingId(null)}
-                            >
-                              <X size={14} />
-                            </Button>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell className="font-medium text-stone-900 text-base">
-                            {linea.name}
-                          </TableCell>
-                          <TableCell className="text-stone-500 italic text-base">
-                            {linea.description || (
-                              <span className="text-stone-300 not-italic">
-                                —
-                              </span>
+                </TableHeader>
+                <TableBody>
+                  {lineas.map((linea) => (
+                    <TableRow key={linea.id} className="border-stone-50">
+                      <TableCell className="py-5 pl-8 font-mono text-stone-400 text-xs">
+                        #{linea.id}
+                      </TableCell>
+                      <TableCell className="font-bold text-stone-900 truncate max-w-[200px]">
+                        {linea.name}
+                      </TableCell>
+                      <TableCell className="text-stone-500">
+                        {/* TRUNCADO DE TEXTO AQUÍ */}
+                        <p className="line-clamp-1 italic max-w-[400px]">
+                          {linea.description || "—"}
+                        </p>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openView(linea)}
+                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-blue-600 hover:bg-blue-50 border-stone-100"
+                          >
+                            <Eye size={17} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openForm(linea)}
+                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-stone-900 hover:bg-stone-100 border-stone-100"
+                          >
+                            <Pencil size={17} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => remove(linea.id)}
+                            disabled={deletingId === linea.id}
+                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 border-stone-100"
+                          >
+                            {deletingId === linea.id ? (
+                              <Loader2 size={17} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={17} />
                             )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => startEdit(linea)}
-                                className="h-8 w-8 text-stone-400 hover:text-stone-900"
-                              >
-                                <Pencil size={16} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => remove(linea.id)}
-                                className="h-8 w-8 text-stone-400 hover:text-red-600 hover:bg-red-50"
-                              >
-                                <Trash2 size={16} />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </>
-                      )}
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {/* DIALOG: CREAR / EDITAR */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-[450px] rounded-[32px] border-none p-0 overflow-hidden shadow-2xl">
+          <div className="bg-stone-900 p-8 text-white">
+            <DialogTitle className="text-2xl font-bold">
+              {selectedLinea ? "Editar Línea" : "Nueva Línea"}
+            </DialogTitle>
+          </div>
+          <div className="p-8 space-y-6 bg-white">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                Nombre
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-12 rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                Descripción
+              </label>
+              <Input
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                className="h-12 rounded-xl"
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowModal(false)}
+                className="flex-1 h-12 rounded-xl"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 h-12 rounded-xl bg-stone-900 text-white font-bold"
+              >
+                {saving ? <Loader2 className="animate-spin" /> : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG: VISTA DETALLADA (SOLO LECTURA) */}
+      <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
+        <DialogContent className="sm:max-w-[500px] rounded-[32px] border-none p-0 overflow-hidden shadow-2xl bg-stone-50">
+          {/* Agregamos DialogHeader y DialogTitle aquí */}
+          <DialogHeader className="sr-only">
+            <DialogTitle>Detalle de la Línea</DialogTitle>
+          </DialogHeader>
+
+          <div className="p-8 space-y-6">
+            <div className="flex items-center gap-4 text-stone-900">
+              <div className="p-3 bg-white rounded-2xl shadow-sm border border-stone-100">
+                <Info size={24} className="text-stone-900" />
+              </div>
+              {/* Cambiamos el h2 por DialogTitle si quieres que sea el título oficial, 
+            o lo dejamos así si ya pusimos el SR-ONLY arriba */}
+              <h2 className="text-2xl font-bold">Detalle de la Línea</h2>
+            </div>
+
+            <div className="bg-white p-6 rounded-[24px] border border-stone-100 space-y-4 shadow-sm">
+              <div>
+                <p className="text-[10px] font-bold uppercase text-stone-400 mb-1">
+                  Nombre Comercial
+                </p>
+                <p className="text-lg font-semibold text-stone-900">
+                  {selectedLinea?.name}
+                </p>
+              </div>
+              <div className="pt-4 border-t border-stone-50">
+                <p className="text-[10px] font-bold uppercase text-stone-400 mb-1">
+                  Descripción Completa
+                </p>
+                <p className="text-stone-600 leading-relaxed italic">
+                  {selectedLinea?.description ||
+                    "No tiene una descripción registrada."}
+                </p>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => setShowViewModal(false)}
+              className="w-full h-12 rounded-xl bg-stone-900 text-white font-bold"
+            >
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

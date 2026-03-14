@@ -10,6 +10,7 @@ import { ReviewsSection } from "@/components/sections/ReviewsSection";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { TOKENS } from "@/lib/data";
 import { ServicesSection } from "@/components/sections/ServicesSection";
+import { BrandsSection } from "@/components/sections/BrandsSection";
 
 export default function Page() {
   const { scrollYProgress } = useScroll();
@@ -34,6 +35,7 @@ export default function Page() {
           <ReviewsSection />
           <ContactSection />
         </main>
+        <BrandsSection />
         <Footer />
       </div>
     </CartProvider>

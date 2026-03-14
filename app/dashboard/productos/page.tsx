@@ -6,16 +6,14 @@ import {
   Pencil,
   Trash2,
   Plus,
-  Check,
   X,
   Loader2,
   ShoppingBag,
   ImagePlus,
-  ToggleLeft,
-  ToggleRight,
   ChevronDown,
   Eye,
-  EyeOff,
+  Droplet,
+  Zap,
 } from "lucide-react";
 import {
   Table,
@@ -29,7 +27,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
+// IMPORTANTE: Agregamos DialogTitle y DialogDescription
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
+// --- Interfaces ---
 interface SelectOption {
   id: number;
   name: string;
@@ -45,10 +52,12 @@ interface Product {
   biodegradable: boolean;
   concentrado: boolean;
   active: boolean;
-  category: SelectOption;
-  linea: SelectOption;
-  aroma: SelectOption;
-  formato: SelectOption;
+  category?: any;
+  linea?: any;
+  aroma?: any;
+  formato?: any;
+  categoryId?: number;
+  lineaId?: number;
 }
 
 const emptyForm = {
@@ -75,11 +84,11 @@ export default function ProductosPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
 
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [previewImg, setPreviewImg] = useState<string>("");
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -94,11 +103,16 @@ export default function ProductosPage() {
         api.get("/aromas"),
         api.get("/formatos"),
       ]);
-      setProducts(p.data);
-      setCategories(c.data);
-      setLineas(l.data);
-      setAromas(a.data);
-      setFormatos(f.data);
+
+      const rawProducts = Array.isArray(p.data) ? p.data : p.data?.data || [];
+
+      setProducts(rawProducts);
+      setCategories(c.data || []);
+      setLineas(l.data || []);
+      setAromas(a.data || []);
+      setFormatos(f.data || []);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
     } finally {
       setLoading(false);
     }
@@ -107,6 +121,17 @@ export default function ProductosPage() {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  const getRelationName = (
+    item: any,
+    list: SelectOption[],
+    relationKey: string,
+    idKey: string,
+  ) => {
+    if (item[relationKey]?.name) return item[relationKey].name;
+    const id = item[idKey] || item[relationKey];
+    return list.find((o) => o.id === id)?.name || "—";
+  };
 
   const openCreate = () => {
     setEditingProduct(null);
@@ -118,19 +143,19 @@ export default function ProductosPage() {
   const openEdit = (p: Product) => {
     setEditingProduct(p);
     setForm({
-      name: p.name,
-      desc: p.desc,
-      precio: String(p.precio),
-      img: p.img,
+      name: p.name || "",
+      desc: p.desc || "",
+      precio: String(p.precio || ""),
+      img: p.img || "",
       badge: p.badge ?? "",
-      biodegradable: p.biodegradable,
-      concentrado: p.concentrado,
-      categoryId: String(p.category.id),
-      lineaId: String(p.linea.id),
-      aromaId: String(p.aroma.id),
-      formatoId: String(p.formato.id),
+      biodegradable: !!p.biodegradable,
+      concentrado: !!p.concentrado,
+      categoryId: String(p.categoryId || p.category?.id || ""),
+      lineaId: String(p.lineaId || p.linea?.id || ""),
+      aromaId: String(p.aroma?.id || ""),
+      formatoId: String(p.formato?.id || ""),
     });
-    setPreviewImg(p.img);
+    setPreviewImg(p.img || "");
     setShowForm(true);
   };
 
@@ -144,37 +169,26 @@ export default function ProductosPage() {
       });
       setForm((f) => ({ ...f, img: data.url }));
       setPreviewImg(data.url);
+    } catch (e) {
+      console.error(e);
     } finally {
       setUploading(false);
     }
   };
 
   const handleSave = async () => {
-    if (
-      !form.name ||
-      !form.precio ||
-      !form.img ||
-      !form.categoryId ||
-      !form.lineaId ||
-      !form.aromaId ||
-      !form.formatoId
-    )
-      return;
+    if (!form.name || !form.precio || !form.img) return;
     setSaving(true);
     try {
       const payload = {
-        name: form.name,
-        desc: form.desc,
+        ...form,
         precio: Number(form.precio),
-        img: form.img,
-        badge: form.badge || undefined,
-        biodegradable: form.biodegradable,
-        concentrado: form.concentrado,
-        categoryId: Number(form.categoryId),
-        lineaId: Number(form.lineaId),
-        aromaId: Number(form.aromaId),
-        formatoId: Number(form.formatoId),
+        categoryId: form.categoryId ? Number(form.categoryId) : null,
+        lineaId: form.lineaId ? Number(form.lineaId) : null,
+        aromaId: form.aromaId ? Number(form.aromaId) : null,
+        formatoId: form.formatoId ? Number(form.formatoId) : null,
       };
+
       if (editingProduct) {
         await api.put(`/products/${editingProduct.id}`, payload);
       } else {
@@ -182,25 +196,20 @@ export default function ProductosPage() {
       }
       setShowForm(false);
       fetchAll();
+    } catch (error) {
+      console.error("Error al guardar:", error);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleToggleActive = async (p: Product) => {
-    await api.put(`/products/${p.id}`, { active: !p.active });
-    fetchAll();
-  };
-
   const handleDelete = async (p: Product) => {
     if (!confirm(`¿Eliminar "${p.name}"?`)) return;
-    setDeletingId(p.id);
     try {
-      if (p.img) await api.delete("/storage/delete", { data: { url: p.img } });
       await api.delete(`/products/${p.id}`);
       fetchAll();
-    } finally {
-      setDeletingId(null);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -210,13 +219,7 @@ export default function ProductosPage() {
     onChange,
     options,
     placeholder,
-  }: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    options: SelectOption[];
-    placeholder: string;
-  }) => (
+  }: any) => (
     <div className="space-y-1.5">
       <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
         {label}
@@ -228,7 +231,7 @@ export default function ProductosPage() {
           className="w-full appearance-none rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 focus:outline-none focus:border-stone-400 pr-8"
         >
           <option value="">{placeholder}</option>
-          {options.map((o) => (
+          {options.map((o: any) => (
             <option key={o.id} value={o.id}>
               {o.name}
             </option>
@@ -243,279 +246,385 @@ export default function ProductosPage() {
   );
 
   return (
-    <div className="w-full space-y-8 p-4 md:p-10 animate-in fade-in duration-500">
+    <div className="w-full space-y-8 p-4 md:p-10 bg-white min-h-screen">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-6 border-b border-stone-100">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-stone-900 flex items-center justify-center">
-            <ShoppingBag size={22} className="text-white" />
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-stone-50 p-6 md:p-8 rounded-[32px] border border-stone-100">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-[22px] bg-stone-900 flex items-center justify-center shadow-2xl shadow-stone-200">
+            <ShoppingBag size={28} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
               Productos
             </h1>
-            <p className="text-sm text-stone-400 mt-0.5">
-              {products.length}{" "}
-              {products.length === 1
-                ? "producto registrado"
-                : "productos registrados"}
+            <p className="text-stone-500 font-medium">
+              {products.length} artículos registrados
             </p>
           </div>
         </div>
         <Button
           onClick={openCreate}
-          className="bg-stone-900 hover:bg-stone-700 text-white rounded-full px-6 gap-2 shadow-sm"
+          className="w-full md:w-auto bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-14 px-8 gap-3"
         >
-          <Plus size={15} /> Nuevo producto
+          <Plus size={20} /> Nuevo producto
         </Button>
       </div>
 
-      {/* Modal / Form */}
+      {/* Tabla */}
+      <Card className="border-none shadow-2xl shadow-stone-100 rounded-[32px] overflow-hidden">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex justify-center items-center py-32">
+              <Loader2 className="h-10 w-10 animate-spin text-stone-200" />
+            </div>
+          ) : products.length === 0 ? (
+            <div className="py-20 text-center text-stone-400 font-medium">
+              No se encontraron productos.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table className="min-w-[800px]">
+                <TableHeader className="bg-stone-50/50">
+                  <TableRow className="border-stone-100">
+                    <TableHead className="py-6 pl-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                      Producto
+                    </TableHead>
+                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                      Categoría
+                    </TableHead>
+                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                      Precio
+                    </TableHead>
+                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                      Estado
+                    </TableHead>
+                    <TableHead className="text-right pr-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                      Acciones
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((p) => (
+                    <TableRow
+                      key={p.id}
+                      className="group border-stone-50 hover:bg-stone-50/30 transition-colors"
+                    >
+                      <TableCell className="py-5 pl-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 flex-shrink-0">
+                            {p.img ? (
+                              <img
+                                src={p.img}
+                                alt={p.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-stone-300">
+                                <ShoppingBag size={20} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-bold text-stone-900 text-base">
+                              {p.name}
+                            </span>
+                            <div className="flex gap-1">
+                              {p.biodegradable && (
+                                <Badge className="bg-green-50 text-green-600 border-none text-[8px] px-1.5 py-0">
+                                  BIO
+                                </Badge>
+                              )}
+                              {p.concentrado && (
+                                <Badge className="bg-blue-50 text-blue-600 border-none text-[8px] px-1.5 py-0">
+                                  CONC
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-stone-700">
+                            {getRelationName(
+                              p,
+                              categories,
+                              "category",
+                              "categoryId",
+                            )}
+                          </span>
+                          <span className="text-[11px] text-stone-400 font-medium uppercase">
+                            {getRelationName(p, lineas, "linea", "lineaId")}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-black text-stone-900">
+                          S/ {Number(p.precio || 0).toFixed(2)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase ${p.active ? "bg-emerald-50 text-emerald-600" : "bg-stone-100 text-stone-400"}`}
+                        >
+                          {p.active ? "Activo" : "Inactivo"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setViewProduct(p)}
+                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-blue-600 hover:bg-blue-50"
+                          >
+                            <Eye size={17} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openEdit(p)}
+                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-amber-600 hover:bg-amber-50"
+                          >
+                            <Pencil size={17} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDelete(p)}
+                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={17} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* --- MODAL DE VISTA (CORREGIDO) --- */}
+      <Dialog open={!!viewProduct} onOpenChange={() => setViewProduct(null)}>
+        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden rounded-[32px] border-none">
+          {viewProduct && (
+            <div>
+              {/* ACCESIBILIDAD: Título y Descripción ocultos visualmente */}
+              <DialogTitle className="sr-only">
+                Detalles de {viewProduct.name}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Vista detallada con información de precio, línea y
+                características.
+              </DialogDescription>
+
+              <div className="relative h-64 bg-stone-100">
+                <img
+                  src={viewProduct.img}
+                  alt={viewProduct.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-6 left-6 text-white">
+                  <Badge className="bg-white/20 backdrop-blur-md text-white border-white/20 mb-2">
+                    {getRelationName(
+                      viewProduct,
+                      categories,
+                      "category",
+                      "categoryId",
+                    )}
+                  </Badge>
+                  <h2 className="text-2xl font-bold">{viewProduct.name}</h2>
+                </div>
+              </div>
+              <div className="p-8 space-y-6 bg-white text-stone-900">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
+                      Precio
+                    </p>
+                    <p className="text-4xl font-black">
+                      S/ {Number(viewProduct.precio).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
+                      Línea
+                    </p>
+                    <p className="text-lg font-bold">
+                      {getRelationName(viewProduct, lineas, "linea", "lineaId")}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`p-4 rounded-2xl border flex items-center gap-3 ${viewProduct.biodegradable ? "bg-green-50 text-green-700 border-green-100" : "bg-stone-50 text-stone-300 opacity-50"}`}
+                  >
+                    <Droplet size={20} />
+                    <span className="text-[10px] font-bold uppercase">
+                      Biodegradable
+                    </span>
+                  </div>
+                  <div
+                    className={`p-4 rounded-2xl border flex items-center gap-3 ${viewProduct.concentrado ? "bg-blue-50 text-blue-700 border-blue-100" : "bg-stone-50 text-stone-300 opacity-50"}`}
+                  >
+                    <Zap size={20} />
+                    <span className="text-[10px] font-bold uppercase">
+                      Concentrado
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* --- FORMULARIO (MODAL ANIMADO CON FRAMER MOTION) --- */}
       <AnimatePresence>
         {showForm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto"
             onClick={(e) => e.target === e.currentTarget && setShowForm(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-[40px] shadow-2xl w-full max-w-3xl my-auto overflow-hidden"
             >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between px-8 pt-8 pb-6 border-b border-stone-100">
-                <div>
-                  <h2 className="text-xl font-bold text-stone-900">
-                    {editingProduct ? "Editar Producto" : "Nuevo Producto"}
-                  </h2>
-                  <p className="text-xs text-stone-400 mt-0.5 uppercase tracking-widest">
-                    {editingProduct
-                      ? `ID #${editingProduct.id}`
-                      : "Completa todos los campos requeridos"}
-                  </p>
-                </div>
+              <div className="px-10 pt-10 pb-6 flex justify-between items-center border-b border-stone-50">
+                <h2 className="text-2xl font-bold text-stone-900">
+                  {editingProduct ? "Editar" : "Nuevo"} Producto
+                </h2>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
+                  className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center hover:bg-stone-200 transition-colors"
                 >
-                  <X size={16} className="text-stone-600" />
+                  <X size={20} />
                 </button>
               </div>
 
-              <div className="px-8 py-6 space-y-6">
-                {/* Imagen */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    Imagen del Producto *
-                  </label>
-                  <div
-                    onClick={() => fileRef.current?.click()}
-                    className="relative group cursor-pointer rounded-2xl border-2 border-dashed border-stone-200 hover:border-stone-400 transition-colors overflow-hidden bg-stone-50"
-                    style={{ minHeight: 160 }}
-                  >
-                    {previewImg ? (
-                      <div className="relative">
-                        <img
-                          src={previewImg}
-                          alt="preview"
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <p className="text-white text-xs font-bold uppercase tracking-widest">
-                            Cambiar imagen
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-40 gap-3">
-                        {uploading ? (
-                          <Loader2
-                            size={28}
-                            className="animate-spin text-stone-400"
-                          />
-                        ) : (
-                          <>
-                            <ImagePlus size={28} className="text-stone-300" />
-                            <p className="text-xs text-stone-400 uppercase tracking-widest font-bold">
-                              Haz clic para subir
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    {uploading && previewImg && (
-                      <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                        <Loader2
-                          size={24}
-                          className="animate-spin text-stone-600"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) =>
-                      e.target.files?.[0] &&
-                      handleImageUpload(e.target.files[0])
-                    }
-                  />
+              <div className="p-10 space-y-8">
+                <div
+                  onClick={() => fileRef.current?.click()}
+                  className="relative w-full h-48 rounded-[32px] border-2 border-dashed border-stone-200 bg-stone-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-stone-400 transition-all"
+                >
+                  {previewImg ? (
+                    <img
+                      src={previewImg}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-stone-400 flex flex-col items-center gap-2">
+                      {uploading ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <>
+                          <ImagePlus size={32} />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">
+                            Subir Imagen del Producto
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  className="hidden"
+                  onChange={(e) =>
+                    e.target.files?.[0] && handleImageUpload(e.target.files[0])
+                  }
+                />
 
-                {/* Nombre y Precio */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2 space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                      Nombre *
+                    <label className="text-[10px] font-bold uppercase text-stone-400">
+                      Nombre
                     </label>
                     <Input
-                      placeholder="Nombre del producto"
                       value={form.name}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, name: e.target.value }))
+                        setForm({ ...form, name: e.target.value })
                       }
-                      className="rounded-xl border-stone-200"
+                      className="rounded-xl h-12"
+                      placeholder="Ej. Limpiador Multiusos"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                      Precio *
+                    <label className="text-[10px] font-bold uppercase text-stone-400">
+                      Precio (S/)
                     </label>
                     <Input
                       type="number"
-                      placeholder="0.00"
                       value={form.precio}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, precio: e.target.value }))
+                        setForm({ ...form, precio: e.target.value })
                       }
-                      className="rounded-xl border-stone-200"
+                      className="rounded-xl h-12 font-bold"
+                      placeholder="0.00"
                     />
                   </div>
                 </div>
 
-                {/* Descripción */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    Descripción
-                  </label>
-                  <textarea
-                    placeholder="Descripción del producto..."
-                    value={form.desc}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, desc: e.target.value }))
-                    }
-                    rows={3}
-                    className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-stone-400 resize-none"
-                  />
-                </div>
-
-                {/* Badge */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    Badge <span className="text-stone-300">(opcional)</span>
-                  </label>
-                  <Input
-                    placeholder='Ej: "Nuevo", "Oferta"'
-                    value={form.badge}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, badge: e.target.value }))
-                    }
-                    className="rounded-xl border-stone-200"
-                  />
-                </div>
-
-                {/* Selects */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <SelectField
-                    label="Categoría *"
+                    label="Categoría"
                     value={form.categoryId}
-                    onChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
                     options={categories}
-                    placeholder="Selecciona"
+                    onChange={(v: any) => setForm({ ...form, categoryId: v })}
+                    placeholder="Sel. Cat."
                   />
                   <SelectField
-                    label="Línea *"
+                    label="Línea"
                     value={form.lineaId}
-                    onChange={(v) => setForm((f) => ({ ...f, lineaId: v }))}
                     options={lineas}
-                    placeholder="Selecciona"
+                    onChange={(v: any) => setForm({ ...form, lineaId: v })}
+                    placeholder="Sel. Línea"
                   />
                   <SelectField
-                    label="Aroma *"
+                    label="Aroma"
                     value={form.aromaId}
-                    onChange={(v) => setForm((f) => ({ ...f, aromaId: v }))}
                     options={aromas}
-                    placeholder="Selecciona"
+                    onChange={(v: any) => setForm({ ...form, aromaId: v })}
+                    placeholder="Sel. Aroma"
                   />
                   <SelectField
-                    label="Formato *"
+                    label="Formato"
                     value={form.formatoId}
-                    onChange={(v) => setForm((f) => ({ ...f, formatoId: v }))}
                     options={formatos}
-                    placeholder="Selecciona"
+                    onChange={(v: any) => setForm({ ...form, formatoId: v })}
+                    placeholder="Sel. Form."
                   />
                 </div>
 
-                {/* Toggles */}
-                <div className="flex gap-6">
-                  {[
-                    { key: "biodegradable", label: "Biodegradable" },
-                    { key: "concentrado", label: "Concentrado" },
-                  ].map(({ key, label }) => (
-                    <button
-                      key={key}
-                      onClick={() =>
-                        setForm((f) => ({
-                          ...f,
-                          [key]: !f[key as keyof typeof f],
-                        }))
-                      }
-                      className="flex items-center gap-2.5 group"
-                    >
-                      <div
-                        className={`w-10 h-5 rounded-full transition-colors flex items-center px-0.5 ${form[key as keyof typeof form] ? "bg-stone-900" : "bg-stone-200"}`}
-                      >
-                        <div
-                          className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${form[key as keyof typeof form] ? "translate-x-5" : "translate-x-0"}`}
-                        />
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-widest text-stone-500">
-                        {label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 pt-2 border-t border-stone-100">
+                <div className="flex gap-4 pt-4 pb-4">
                   <Button
                     onClick={handleSave}
                     disabled={saving || uploading}
-                    className="flex-1 bg-stone-900 hover:bg-stone-700 text-white rounded-xl h-11 gap-2"
+                    className="flex-1 bg-stone-900 text-white rounded-2xl h-14 text-base font-bold"
                   >
                     {saving ? (
-                      <>
-                        <Loader2 size={15} className="animate-spin" />{" "}
-                        Guardando...
-                      </>
+                      <Loader2 className="animate-spin" />
+                    ) : editingProduct ? (
+                      "Guardar Cambios"
                     ) : (
-                      <>
-                        <Check size={15} />{" "}
-                        {editingProduct ? "Guardar cambios" : "Crear producto"}
-                      </>
+                      "Publicar Producto"
                     )}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setShowForm(false)}
-                    className="rounded-xl h-11 px-6 border-stone-200"
+                    className="px-8 rounded-2xl h-14 border-stone-200 font-bold"
                   >
                     Cancelar
                   </Button>
@@ -525,183 +634,6 @@ export default function ProductosPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Tabla */}
-      <Card className="border border-stone-100 shadow-sm rounded-2xl overflow-hidden">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex justify-center items-center py-24">
-              <Loader2 className="h-7 w-7 animate-spin text-stone-300" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-stone-50 hover:bg-stone-50">
-                  <TableHead className="pl-6 w-16 text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    Img
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    Nombre
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 hidden md:table-cell">
-                    Categoría
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 hidden lg:table-cell">
-                    Línea
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 hidden lg:table-cell">
-                    Formato
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    Precio
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 hidden md:table-cell">
-                    Estado
-                  </TableHead>
-                  <TableHead className="text-right pr-6 text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    Acciones
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="h-32 text-center text-stone-400 text-sm italic"
-                    >
-                      No hay productos registrados aún.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  products.map((p) => (
-                    <TableRow
-                      key={p.id}
-                      className={`group border-stone-50 transition-colors ${p.active ? "hover:bg-stone-50/60" : "opacity-50 hover:bg-stone-50/40"}`}
-                    >
-                      {/* Imagen */}
-                      <TableCell className="pl-6">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-stone-100">
-                          {p.img ? (
-                            <img
-                              src={p.img}
-                              alt={p.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ShoppingBag
-                                size={16}
-                                className="text-stone-300"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      {/* Nombre + badge */}
-                      <TableCell>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-semibold text-stone-800 text-sm">
-                            {p.name}
-                          </span>
-                          <div className="flex gap-1.5 flex-wrap">
-                            {p.badge && (
-                              <span className="text-[9px] uppercase tracking-widest font-bold bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full">
-                                {p.badge}
-                              </span>
-                            )}
-                            {p.biodegradable && (
-                              <span className="text-[9px] uppercase tracking-widest font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
-                                Bio
-                              </span>
-                            )}
-                            {p.concentrado && (
-                              <span className="text-[9px] uppercase tracking-widest font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
-                                Conc.
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="hidden md:table-cell text-stone-500 text-sm">
-                        {p.category.name}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell text-stone-500 text-sm">
-                        {p.linea.name}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell text-stone-500 text-sm">
-                        {p.formato.name}
-                      </TableCell>
-
-                      {/* Precio */}
-                      <TableCell>
-                        <span className="font-bold text-stone-900 text-sm">
-                          S/ {Number(p.precio).toFixed(2)}
-                        </span>
-                      </TableCell>
-
-                      {/* Estado */}
-                      <TableCell className="hidden md:table-cell">
-                        <button
-                          onClick={() => handleToggleActive(p)}
-                          className={`text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-full transition-colors ${
-                            p.active
-                              ? "bg-green-50 text-green-600 hover:bg-green-100"
-                              : "bg-stone-100 text-stone-400 hover:bg-stone-200"
-                          }`}
-                        >
-                          {p.active ? "Activo" : "Inactivo"}
-                        </button>
-                      </TableCell>
-
-                      {/* Acciones */}
-                      <TableCell className="text-right pr-6">
-                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEdit(p)}
-                            className="h-8 w-8 rounded-lg text-stone-400 hover:text-stone-900 hover:bg-stone-100"
-                          >
-                            <Pencil size={14} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleToggleActive(p)}
-                            className={`h-8 w-8 rounded-lg ${p.active ? "text-stone-400 hover:text-amber-600 hover:bg-amber-50" : "text-stone-400 hover:text-green-600 hover:bg-green-50"}`}
-                          >
-                            {p.active ? (
-                              <EyeOff size={14} />
-                            ) : (
-                              <Eye size={14} />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(p)}
-                            disabled={deletingId === p.id}
-                            className="h-8 w-8 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50"
-                          >
-                            {deletingId === p.id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={14} />
-                            )}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

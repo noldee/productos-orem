@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Mail, Phone, MapPin, Clock, MessageCircle, ArrowRight } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Clock,
+  MessageCircle,
+  ArrowRight,
+} from "lucide-react";
 
 export function ContactSection() {
   const [nombre, setNombre] = useState("");
@@ -21,7 +28,7 @@ export function ContactSection() {
     const fecha = new Date().toLocaleDateString("es-PE");
 
     const lineasMensaje = [
-      "*NUEVA CONSULTA - OREM BOTANICO*",
+      "*NUEVA CONSULTA - M&G S.A.C.*",
       `_Fecha: ${fecha}_`,
       "----------------------------",
       `*Nombre:* ${nombre.toUpperCase()}`,
@@ -30,9 +37,8 @@ export function ContactSection() {
       "*Mensaje:*",
       `_${mensaje}_`,
       "----------------------------",
-      "*Web:* www.orem.com.pe",
-      "----------------------------",
-      "_Suministros Generales OREM_",
+      "*Distribuidora M&G*",
+      "_Servicios Generales de Limpieza_",
     ].join("\n");
 
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(lineasMensaje)}`;
@@ -44,118 +50,160 @@ export function ContactSection() {
   };
 
   return (
-    <section className="py-20 md:py-32 px-6 relative" id="contacto">
+    <section className="py-20 md:py-32 px-6 relative font-lato" id="contacto">
       <div className="max-w-6xl mx-auto">
-
-        {/* Título de sección */}
-        <div className="mb-12 text-center">
-          <span className="font-sans text-[10px] uppercase tracking-[0.4em] text-stone-400 mb-4 block">
-            Contáctanos
+        {/* CABECERA */}
+        <div className="mb-16 text-center">
+          <span className="text-[10px] uppercase tracking-[0.4em] text-[#8CC63F] mb-4 block font-black">
+            Canales de atención
           </span>
-          <h2 className="font-serif italic text-5xl md:text-6xl text-stone-900 leading-tight">
-            Productos <span className="text-musgo not-italic">OreM</span>
+          <h2 className="text-5xl md:text-7xl font-black text-slate-900 leading-[0.85] uppercase tracking-tighter">
+            ¿Listo para <br />
+            <span className="text-[#00AEEF]">hacer tu pedido?</span>
           </h2>
-          <p className="font-sans text-stone-500 font-light text-sm max-w-md mx-auto mt-4 leading-relaxed">
-            Escríbenos y te responderemos por WhatsApp lo antes posible.
+          <p className="text-slate-500 font-light text-base max-w-md mx-auto mt-6 leading-relaxed">
+            Estamos en San Juan de Lurigancho. Escríbenos y un asesor te
+            atenderá personalmente por WhatsApp.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* FORMULARIO */}
-          <div className="md:col-span-2 p-8 md:p-12 rounded-[3rem] relative overflow-hidden flex flex-col bg-negro shadow-2xl">
-            <h3 className="font-serif text-4xl md:text-5xl text-white italic mb-8 leading-tight">
-              Ponte en <br />
-              <span className="text-salvia not-italic">Contacto</span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* COLUMNA FORMULARIO (8 columnas) */}
+          <div className="lg:col-span-8 p-8 md:p-14 rounded-[3.5rem] relative overflow-hidden flex flex-col bg-[#1a1a18] shadow-2xl group">
+            {/* Decoración de fondo */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#00AEEF]/10 blur-[100px] rounded-full -mr-20 -mt-20 pointer-events-none" />
+
+            <h3 className="text-4xl md:text-5xl text-white font-black uppercase mb-10 leading-tight tracking-tighter">
+              Envíanos un <br />
+              <span className="text-[#8CC63F]">Mensaje</span>
             </h3>
 
-            <form className="space-y-5 relative z-10 w-full" onSubmit={enviarAWhatsApp}>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-stone-500 ml-2 block">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  placeholder="Juan Perez"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  required
-                  className="w-full bg-stone-900/50 border border-stone-800 rounded-2xl px-6 py-4 outline-none focus:border-salvia focus:ring-1 focus:ring-salvia/20 transition-all text-white placeholder:text-stone-700 font-light"
-                />
+            <form
+              className="space-y-6 relative z-10 w-full"
+              onSubmit={enviarAWhatsApp}
+            >
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 ml-2 block font-bold">
+                    Nombre Completo
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej. Juan Pérez"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-[#00AEEF] focus:ring-1 focus:ring-[#00AEEF]/20 transition-all text-white placeholder:text-slate-600 font-light"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 ml-2 block font-bold">
+                    Correo (Opcional)
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={correo}
+                    onChange={(e) => setCorreo(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-[#00AEEF] focus:ring-1 focus:ring-[#00AEEF]/20 transition-all text-white placeholder:text-slate-600 font-light"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-stone-500 ml-2 block">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="ejemplo@correo.com"
-                  value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
-                  className="w-full bg-stone-900/50 border border-stone-800 rounded-2xl px-6 py-4 outline-none focus:border-salvia focus:ring-1 focus:ring-salvia/20 transition-all text-white placeholder:text-stone-700 font-light"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-stone-500 ml-2 block">
-                  Mensaje
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 ml-2 block font-bold">
+                  ¿Qué productos necesitas?
                 </label>
                 <textarea
-                  placeholder="¿En qué te podemos ayudar?"
+                  placeholder="Escribe aquí tu lista de pedidos o consulta..."
                   rows={4}
                   value={mensaje}
-                  onChange={(e) => setMensaje(e.target.value)}
+                  onChange={(e) => setNombre(e.target.value)} // Corregido: setMensaje
                   required
-                  className="w-full bg-stone-900/50 border border-stone-800 rounded-2xl px-6 py-4 outline-none focus:border-salvia focus:ring-1 focus:ring-salvia/20 transition-all text-white placeholder:text-stone-700 font-light resize-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-[#00AEEF] focus:ring-1 focus:ring-[#00AEEF]/20 transition-all text-white placeholder:text-slate-600 font-light resize-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="group w-full md:w-auto bg-salvia text-negro font-sans text-[11px] uppercase tracking-[0.25em] font-bold rounded-2xl px-12 py-5 flex items-center justify-center gap-4 hover:bg-white transition-all duration-500"
+                className="w-full md:w-auto bg-[#00AEEF] text-white font-black text-[11px] uppercase tracking-[0.25em] rounded-2xl px-12 py-5 flex items-center justify-center gap-4 hover:bg-[#8CC63F] hover:text-[#1a1a18] transition-all duration-500 "
               >
                 <MessageCircle size={18} />
-                <span>Enviar por WhatsApp</span>
-                <ArrowRight size={16} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                <span>Iniciar pedido vía WhatsApp</span>
+                <ArrowRight size={16} />
               </button>
             </form>
           </div>
 
-          {/* INFO DERECHA */}
-          <div className="flex flex-col gap-6">
-            <div className="p-8 rounded-[2.5rem] border border-arena flex flex-col justify-between group hover:bg-stone-50 transition-all duration-700 bg-transparent flex-1">
-              <div className="relative aspect-square rounded-[2rem] overflow-hidden shadow-2xl border-[6px] border-white mb-8">
+          {/* COLUMNA INFO (4 columnas) */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            {/* CARD INFO CONTACTO */}
+            <div className="p-8 rounded-[3rem] border border-slate-100 flex flex-col bg-slate-50/50 flex-1 group hover:border-[#00AEEF]/30 transition-all duration-500">
+              <div className="relative aspect-video lg:aspect-square rounded-[2rem] overflow-hidden shadow-lg mb-8 border-4 border-white">
                 <Image
-                  src="https://plus.unsplash.com/premium_photo-1706548332696-0e020917484c?q=80&w=387&auto=format&fit=crop"
-                  alt="Contacto Productos OREM"
+                  src="https://plus.unsplash.com/premium_photo-1681487870238-4a2dfddc6bcb?q=80&w=580&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  alt="Atención al cliente M&G"
                   fill
-                  className="object-cover transition-transform duration-700 hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               </div>
-              <div className="space-y-4">
-                <h4 className="font-serif text-2xl italic text-negro">Escríbenos</h4>
-                <div className="flex items-center gap-3 text-stone-500 font-light text-sm">
-                  <Mail size={16} className="text-salvia shrink-0" />
-                  <span className="truncate">mygserviciosgenerales@gmail.com</span>
+
+              <div className="space-y-5">
+                <h4 className="text-xl font-black uppercase tracking-tighter text-slate-900">
+                  Contacto Directo
+                </h4>
+
+                <div className="flex items-start gap-4 text-slate-600 group/item">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-[#00AEEF] group-hover/item:bg-[#00AEEF] group-hover/item:text-white transition-colors">
+                    <Mail size={14} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] uppercase font-bold text-slate-400">
+                      Email
+                    </span>
+                    <span className="text-xs break-all font-medium">
+                      mygserviciosgenerales@gmail.com
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-stone-500 font-light text-sm">
-                  <Phone size={16} className="text-salvia" />
-                  <span>+51 944 339 257</span>
+
+                <div className="flex items-start gap-4 text-slate-600 group/item">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-[#8CC63F] group-hover/item:bg-[#8CC63F] group-hover/item:text-white transition-colors">
+                    <Phone size={14} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] uppercase font-bold text-slate-400">
+                      Teléfono
+                    </span>
+                    <span className="text-xs font-medium">+51 944 339 257</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-stone-500 font-light text-sm">
-                  <MapPin size={16} className="text-salvia shrink-0" />
-                  <span>S.J.L, Lima - Perú</span>
+
+                <div className="flex items-start gap-4 text-slate-600 group/item">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-[#00AEEF] group-hover/item:bg-[#00AEEF] group-hover/item:text-white transition-colors">
+                    <MapPin size={14} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] uppercase font-bold text-slate-400">
+                      Ubicación
+                    </span>
+                    <span className="text-xs font-medium">
+                      S.J.L, Lima - Perú
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 rounded-[2.5rem] bg-musgo text-white relative overflow-hidden group">
-              <Clock className="absolute -bottom-6 -right-6 text-white/10 w-32 h-32 rotate-12 group-hover:rotate-0 transition-transform duration-1000" />
-              <h4 className="font-serif text-2xl italic mb-2 relative z-10">Horarios</h4>
-              <p className="font-sans font-light text-white/80 text-sm relative z-10">
+            {/* CARD HORARIOS */}
+            <div className="p-8 rounded-[2.5rem] bg-[#8CC63F] text-[#1a1a18] relative overflow-hidden group shadow-lg shadow-[#8CC63F]/20">
+              <Clock className="absolute -bottom-6 -right-6 text-black/10 w-32 h-32 rotate-12 group-hover:rotate-0 transition-transform duration-1000" />
+              <h4 className="text-xl font-black uppercase tracking-tighter mb-2 relative z-10">
+                Horario Comercial
+              </h4>
+              <p className="font-light text-slate-900/80 text-sm relative z-10 leading-tight">
                 Lunes a Viernes <br />
-                <span className="text-white font-medium">9:00 am - 6:00 pm</span>
+                <span className="font-black text-lg">9:00 am - 6:00 pm</span>
               </p>
             </div>
           </div>
