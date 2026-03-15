@@ -1,7 +1,15 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, ArrowRight, Plus, Minus, X } from "lucide-react";
+import queryString from "query-string";
+import {
+  ShoppingCart,
+  ArrowRight,
+  Plus,
+  Minus,
+  X,
+  ShoppingBag,
+} from "lucide-react";
 import Image from "next/image";
 import {
   Sheet,
@@ -14,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { useCart } from "@/components/providers/CartProvider";
 import { SHIPPING_TARGET, SHIPPING_COST } from "@/lib/data";
+import { sendOrderToWhatsApp } from "@/utils/sendOrderToWhatsApp";
 
 export function CartSheet() {
   const { cartItems, updateQty, subtotal, isCartOpen, setCartOpen } = useCart();
@@ -24,11 +33,11 @@ export function CartSheet() {
   return (
     <Sheet open={isCartOpen} onOpenChange={setCartOpen}>
       <SheetTrigger asChild>
-        <button className="relative p-2 transition-all active:scale-90 group outline-none">
+        <button className="relative p-2 transition-all active:scale-95 group outline-none">
           <ShoppingCart
-            size={22}
-            strokeWidth={1.2}
-            className="text-stone-700 group-hover:text-negro transition-colors"
+            size={24}
+            strokeWidth={1.5}
+            className="text-black group-hover:text-[#7D8C69]"
           />
           <AnimatePresence>
             {cartItems.length > 0 && (
@@ -36,7 +45,7 @@ export function CartSheet() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
-                className="absolute top-0 right-0 w-4 h-4 rounded-full text-[9px] text-white flex items-center justify-center font-bold bg-musgo shadow-sm"
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold bg-[#7D8C69] border-2 border-white shadow-sm"
               >
                 {cartItems.length}
               </motion.span>
@@ -47,166 +56,236 @@ export function CartSheet() {
 
       <SheetContent
         side="right"
-        // Fix de scroll y foco
         onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="z-[100] w-[88%] sm:max-w-md border-l-0 p-0 flex flex-col h-full shadow-[-20px_0_50px_rgba(0,0,0,0.15)] rounded-l-[2.5rem] bg-crema transition duration-500 ease-in-out"
+        className="z-[100] !w-[90vw] !max-w-[420px] border-none p-0 flex flex-col h-svh bg-white shadow-2xl rounded-l-2xl overflow-hidden"
+        style={{ animation: "none" }}
       >
-        {/* Header Ultra-Compacto */}
-        <SheetHeader className="px-8 pt-4 pb-4 border-b border-stone-200 bg-white/50 flex-none rounded-tl-[2.5rem] relative">
-          {/* Botón X más ajustado */}
-          <SheetClose className="absolute right-6 top-4 opacity-40 hover:opacity-100 transition-opacity outline-none">
-            <X size={20} strokeWidth={1.5} />
-          </SheetClose>
-
-          <div className="flex flex-col items-start">
-            {/* Título sin espacios (leading-none y -mt-1 para subirlo más) */}
-            <SheetTitle className="font-serif italic text-4xl font-light text-negro leading-none -mt-1">
-              Tu Selección
-            </SheetTitle>
-            <p className="font-sans text-[9px] uppercase tracking-[0.2em] text-stone-400 mt-1">
-              Curaduría de Limpieza
-            </p>
+        {/* ── HEADER ── */}
+        <SheetHeader className="px-6 pt-10 pb-5 flex-none bg-white border-b border-stone-100">
+          <div className="flex items-start justify-between">
+            <div className="space-y-0.5">
+              <SheetTitle className="font-serif italic text-[2.6rem] font-light text-black leading-tight">
+                Tu Selección
+              </SheetTitle>
+              <p className="font-sans text-[10px] uppercase tracking-[0.4em] text-[#7D8C69] font-bold">
+                Curaduría de Bienestar
+              </p>
+            </div>
+            <SheetClose className="mt-1 p-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-black transition-all outline-none">
+              <X size={20} strokeWidth={2} />
+            </SheetClose>
           </div>
 
-          {/* Barra envío gratis más pegada (mt-4 en lugar de mt-8) */}
-          <div className="mt-4">
-            <div className="flex justify-between text-[10px] mb-1 font-medium font-sans tracking-wide">
-              <span className="text-stone-600">
+          {/* Barra de progreso envío gratis */}
+          <div className="mt-6 space-y-2">
+            <div className="flex justify-between items-center text-[10px] font-sans tracking-[0.08em] uppercase">
+              <span className="text-stone-500 font-semibold">
                 {progress < 100
-                  ? `S/ ${(SHIPPING_TARGET - subtotal).toFixed(2)} para envío gratis`
-                  : "¡Envío gratis!"}
+                  ? `Faltan S/ ${(SHIPPING_TARGET - subtotal).toFixed(2)} para envío gratis`
+                  : "✓ Envío gratis aplicado"}
               </span>
-              <span className="text-musgo font-bold">
+              <span className="text-[#7D8C69] font-black text-xs">
                 {Math.round(progress)}%
               </span>
             </div>
-            <div className="h-[2px] w-full bg-stone-100 rounded-full overflow-hidden">
+            <div className="h-[3px] w-full bg-stone-100 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.8, ease: "circOut" }}
-                className="h-full rounded-full bg-musgo"
+                transition={{ duration: 1.2, ease: "circOut" }}
+                className="h-full bg-[#7D8C69] rounded-full"
               />
             </div>
           </div>
         </SheetHeader>
-        {/* Items - Contenedor Scrolleable */}
-        <div className="flex-1 overflow-y-auto px-8 pr-6 custom-scrollbar scroll-smooth">
-          <div className="py-8 space-y-10">
-            <AnimatePresence mode="popLayout">
-              {cartItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex gap-6 group relative"
-                >
-                  <div className="relative h-32 w-24 flex-none overflow-hidden rounded-2xl bg-stone-100 border border-stone-200 shadow-sm">
-                    <Image
-                      src={item.img}
-                      alt={item.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      sizes="96px"
-                    />
-                  </div>
 
-                  <div className="flex-1 flex flex-col justify-between py-1">
-                    <div>
-                      <div className="flex justify-between items-start text-stone-400 font-sans text-[9px] uppercase tracking-widest mb-1">
-                        <span>{item.variant}</span>
+        {/* ── CONTENEDOR DE LISTA DE PRODUCTOS ── */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 custom-scrollbar min-h-0">
+          <AnimatePresence mode="popLayout" initial={false}>
+            {cartItems.length > 0 ? (
+              <motion.div
+                key="cart-list"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4 pr-2" /* pr-2 evita que el scroll choque con los productos */
+              >
+                {cartItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20, scale: 0.95 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex gap-4 items-center bg-stone-50 rounded-2xl  border border-stone-100 shadow-sm"
+                  >
+                    {/* Imagen del Producto */}
+                    <div className="relative w-24 h-24 flex-none rounded-xl overflow-hidden bg-white border border-stone-100 shadow-inner">
+                      <Image
+                        src={item.img}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                        priority
+                      />
+                    </div>
+
+                    {/* Información y Controles */}
+                    <div className="flex-1 flex flex-col justify-between min-w-0 h-24">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0">
+                          {item.variant && (
+                            <p className="text-[9px] uppercase tracking-[0.2em] text-[#7D8C69] font-black truncate mb-0.5">
+                              {item.variant}
+                            </p>
+                          )}
+                          <h4 className="font-serif text-base text-black leading-tight font-medium line-clamp-2">
+                            {item.name}
+                          </h4>
+                        </div>
                         <button
                           onClick={() => updateQty(item.id, -item.qty)}
-                          className="hover:text-red-700 transition-colors uppercase font-bold"
+                          className="flex-none text-stone-300 hover:text-red-500 transition-colors p-1"
+                          aria-label="Eliminar producto"
                         >
-                          Quitar
+                          <X size={16} strokeWidth={2.5} />
                         </button>
                       </div>
-                      <h4 className="font-serif text-xl leading-tight text-negro pr-4">
-                        {item.name}
-                      </h4>
-                    </div>
 
-                    <div className="flex justify-between items-end">
-                      <div className="flex items-center border border-stone-200 rounded-full px-3 py-1.5 gap-5 bg-white/50">
-                        <button
-                          onClick={() => updateQty(item.id, -1)}
-                          className="text-stone-400 hover:text-negro transition-colors"
-                        >
-                          <Minus size={12} />
-                        </button>
-                        <span className="font-sans text-xs font-semibold w-4 text-center">
-                          {item.qty}
+                      {/* Selector de Cantidad y Precio */}
+                      <div className="flex justify-between items-center mt-auto">
+                        <div className="flex items-center border border-stone-200 rounded-full px-3 py-1 gap-4 bg-white shadow-sm">
+                          <button
+                            onClick={() => updateQty(item.id, -1)}
+                            className="text-stone-400 hover:text-black transition-colors"
+                          >
+                            <Minus size={12} strokeWidth={3} />
+                          </button>
+                          <span className="text-sm font-black min-w-[14px] text-center text-black">
+                            {item.qty}
+                          </span>
+                          <button
+                            onClick={() => updateQty(item.id, 1)}
+                            className="text-stone-400 hover:text-black transition-colors"
+                          >
+                            <Plus size={12} strokeWidth={3} />
+                          </button>
+                        </div>
+                        <span className="font-sans text-base font-black text-black">
+                          S/ {(item.price * item.qty).toFixed(2)}
                         </span>
-                        <button
-                          onClick={() => updateQty(item.id, 1)}
-                          className="text-stone-400 hover:text-negro transition-colors"
-                        >
-                          <Plus size={12} />
-                        </button>
                       </div>
-                      <span className="font-serif text-xl font-medium tracking-tight text-stone-800">
-                        S/ {(item.price * item.qty).toFixed(2)}
-                      </span>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-
-            {cartItems.length === 0 && (
-              <div className="py-5 text-center">
-                <p className="font-serif italic text-3xl opacity-20 text-negro">
-                  Tu cesta está vacía
-                </p>
-                <SheetClose asChild>
-                  <button className="font-sans text-[10px] uppercase tracking-widest mt-4 underline underline-offset-8 opacity-50 hover:opacity-100 transition-opacity">
-                    Explorar productos
-                  </button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              /* Estado Vacío (Centrado automáticamente por el contenedor padre) */
+              <motion.div
+                key="empty-state"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="flex flex-col items-center justify-center text-center space-y-5"
+              >
+                <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center">
+                  <ShoppingBag
+                    size={40}
+                    strokeWidth={1}
+                    className="text-stone-200"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-serif italic text-2xl text-black">
+                    Tu bolsa está vacía
+                  </h3>
+                  <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-2">
+                    Agrega productos para comenzar
+                  </p>
+                </div>
+                <SheetClose className="bg-black text-white px-8 py-3 rounded-full text-[10px] font-bold tracking-[0.2em] hover:bg-[#7D8C69] transition-all shadow-lg">
+                  VER PRODUCTOS
                 </SheetClose>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
 
-        {/* Footer */}
-        <SheetFooter className="p-8 bg-stone-50 border-t border-stone-200 flex-none flex-col space-y-5 rounded-bl-[2.5rem]">
-          <div className="w-full space-y-3">
-            <div className="flex justify-between font-sans text-[11px] uppercase tracking-widest text-stone-500">
-              <span>Subtotal</span>
-              <span className="text-negro font-bold">
-                S/ {subtotal.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between font-sans text-[11px] uppercase tracking-widest text-stone-500">
-              <span>Envío Estimado</span>
-              <span className="text-musgo font-bold uppercase">
-                {subtotal > SHIPPING_TARGET
-                  ? "Bonificado"
-                  : `S/ ${SHIPPING_COST.toFixed(2)}`}
-              </span>
-            </div>
-            <div className="pt-4 flex justify-between items-center border-t border-stone-300">
-              <span className="font-serif text-3xl font-light italic text-negro">
-                Total
-              </span>
-              <span className="font-serif text-3xl font-semibold text-negro">
-                S/ {total.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          <button className="w-full py-5 rounded-2xl font-sans text-[11px] uppercase tracking-[0.3em] font-bold bg-negro text-crema transition-all hover:bg-stone-800 active:scale-[0.98] shadow-xl flex items-center justify-center gap-3 group">
-            Proceder al Pago{" "}
-            <ArrowRight
-              size={14}
-              className="group-hover:translate-x-1 transition-transform"
-            />
-          </button>
-        </SheetFooter>
+        {/* ── FOOTER FIJO ── */}
+        <AnimatePresence>
+          {cartItems.length > 0 && (
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SheetFooter className="px-6 pt-5 pb-8 bg-white border-t border-stone-100 flex-none flex-col gap-5">
+                {/* Resumen */}
+                <div className="w-full space-y-3">
+                  <div className="flex justify-between text-[11px] uppercase tracking-widest text-stone-500 font-bold">
+                    <span>Subtotal</span>
+                    <span className="text-black">S/ {subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] uppercase tracking-widest text-stone-500 font-bold">
+                    <span>Envío estimado</span>
+                    <span
+                      className={
+                        subtotal > SHIPPING_TARGET
+                          ? "text-[#7D8C69]"
+                          : "text-black"
+                      }
+                    >
+                      {subtotal > SHIPPING_TARGET
+                        ? "GRATIS"
+                        : `S/ ${SHIPPING_COST.toFixed(2)}`}
+                    </span>
+                  </div>
+                </div>
+                {/* Total */}
+                <div className="flex justify-between items-end border-t border-stone-100 pt-4">
+                  <span className="font-serif text-[2.2rem] italic text-black leading-none">
+                    Total
+                  </span>
+                  <div className="text-right">
+                    <p className="text-3xl font-black text-black tracking-tighter leading-none">
+                      S/ {total.toFixed(2)}
+                    </p>
+                    <p className="text-[9px] text-stone-400 font-bold tracking-widest mt-1 uppercase">
+                      Impuestos incluidos · PEN
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    sendOrderToWhatsApp({
+                      cartItems,
+                      subtotal,
+                      total,
+                      shippingCost: SHIPPING_COST,
+                      shippingTarget: SHIPPING_TARGET,
+                    })
+                  }
+                  className="w-full py-5 bg-black text-white text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-[#7D8C69] transition-all duration-300 flex items-center justify-center gap-3 group rounded-xl shadow-lg shadow-black/10"
+                >
+                  Finalizar Pedido
+                  <motion.span
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 1.8,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <ArrowRight size={16} strokeWidth={2.5} />
+                  </motion.span>
+                </button>
+              </SheetFooter>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </SheetContent>
     </Sheet>
   );

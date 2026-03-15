@@ -94,24 +94,7 @@ export const services: Service[] = [
 ];
 
 // ─── CARRITO (Precios en Soles sugeridos) ─────────────────────────────────
-export const initialCartItems: CartItem[] = [
-  {
-    id: 1,
-    name: "Eucalipto de los Andes Pro",
-    variant: "Colección Serranía — 500ml",
-    price: 49.0, // Precio en S/.
-    qty: 1,
-    img: "https://plus.unsplash.com/premium_photo-1684407616442-87bf0d69e8b4?q=80&w=870&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    name: "Limpia Todo Cítrico Selva",
-    variant: "Extractos Naturales — 500ml",
-    price: 35.0, // Precio en S/.
-    qty: 1,
-    img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=400",
-  },
-];
+export const initialCartItems: CartItem[] = [];
 
 export const SHIPPING_TARGET = 150; // Envío gratis a partir de 150 soles
 export const SHIPPING_COST = 12; // Costo de envío estándar en Lima

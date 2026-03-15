@@ -22,7 +22,7 @@ export default function CatalogosPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-[#00AEEF] selection:text-white font-sans">
-      {/* HEADER INDUSTRIAL */}
+      {/* HEADER */}
       <header className="sticky top-0 z-40 backdrop-blur-md border-b border-slate-200 bg-white/80">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link
@@ -51,9 +51,8 @@ export default function CatalogosPage() {
         </div>
       </header>
 
-      {/* HERO SECTION - Minimalista Industrial */}
+      {/* HERO */}
       <section className="px-6 pt-16 pb-12 max-w-7xl mx-auto relative overflow-hidden">
-        {/* Decoración técnica de fondo */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#00AEEF]/5 blur-[100px] -z-10" />
 
         <motion.div
@@ -76,12 +75,12 @@ export default function CatalogosPage() {
           </h1>
 
           <p className="text-slate-500 font-medium text-xs max-w-md leading-relaxed uppercase tracking-wider">
-            Soluciones de limpieza de alto rendimiento para el sector industrial
-            y comercial.
+            Distribuidora de productos de limpieza al por mayor y menor.
+            Trabajamos con las mejores marcas del mercado.
           </p>
         </motion.div>
 
-        {/* SELECTOR DE CATEGORÍAS RÁPIDAS */}
+        {/* CATEGORÍAS RÁPIDAS */}
         <div className="flex gap-2 mt-12 flex-wrap">
           {CATEGORIAS.map((cat) => (
             <button
@@ -127,17 +126,25 @@ export default function CatalogosPage() {
               </div>
             </div>
 
-            {/* Banner de Soporte Técnico */}
+            {/* Banner contacto */}
             <div className="bg-[#00AEEF] rounded-[2rem] p-8 text-white">
               <p className="text-[9px] uppercase tracking-widest font-black mb-2 opacity-80">
                 Asesoría Directa
               </p>
-              <h4 className="text-lg font-black leading-tight mb-4 uppercase tracking-tighter">
-                ¿Necesitas una ficha técnica?
+              <h4 className="text-lg font-black leading-tight mb-1 uppercase tracking-tighter">
+                ¿Necesitas una cotización?
               </h4>
-              <button className="w-full py-3 bg-white text-slate-900 rounded-xl text-[10px] uppercase tracking-widest font-black hover:bg-slate-100 transition-all">
-                Contactar Ventas
-              </button>
+              <p className="text-[10px] opacity-70 mb-4 font-medium">
+                Atendemos al por mayor y menor con delivery a tu negocio.
+              </p>
+              <a
+                href="https://wa.me/51944339257"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-3 bg-white text-slate-900 rounded-xl text-[10px] uppercase tracking-widest font-black hover:bg-slate-100 transition-all text-center"
+              >
+                WhatsApp 944 339 257
+              </a>
             </div>
           </div>
         </aside>
@@ -145,16 +152,11 @@ export default function CatalogosPage() {
         {/* GRILLA DE PRODUCTOS */}
         <main className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-10 border-b border-slate-200 pb-6">
-            <div className="flex items-center gap-4">
-              <p className="text-[11px] uppercase tracking-[0.2em] font-black text-slate-400">
-                <span className="text-[#00AEEF]">
-                  {filters.filtered.length}
-                </span>{" "}
-                resultados encontrados
-              </p>
-            </div>
+            <p className="text-[11px] uppercase tracking-[0.2em] font-black text-slate-400">
+              <span className="text-[#00AEEF]">{filters.filtered.length}</span>{" "}
+              productos encontrados
+            </p>
 
-            {/* Controles de Vista */}
             <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200">
               <button className="p-2 bg-slate-50 rounded-lg text-slate-900">
                 <LayoutGrid size={16} />
@@ -206,7 +208,7 @@ export default function CatalogosPage() {
         </main>
       </div>
 
-      {/* MOBILE DRAWER (Filtros) */}
+      {/* MOBILE DRAWER */}
       <AnimatePresence>
         {sidebarOpen && (
           <>

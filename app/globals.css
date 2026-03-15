@@ -150,7 +150,7 @@ body::-webkit-scrollbar {
 }
 
 body::-webkit-scrollbar-track {
-  background-color: #f1f5f9; 
+  background-color: #f1f5f9;
 }
 
 body::-webkit-scrollbar-thumb {
@@ -159,7 +159,25 @@ body::-webkit-scrollbar-thumb {
   border: 2px solid #f1f5f9;
 }
 body::-webkit-scrollbar-thumb:hover {
-  background-color: #008cc0; 
+  background-color: #008cc0;
+}
+/* Scrollbar para contenedores internos (cart, sidebars, etc.) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #f8fafc;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #00aeef;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #008cc0;
 }
 
 @keyframes marquee-sync {
@@ -194,4 +212,34 @@ body::-webkit-scrollbar-thumb:hover {
 .review-row:has(*:hover) .animate-marquee,
 .review-row:has(*:hover) .animate-marquee-reverse {
   animation-play-state: paused;
+}
+
+/* ── Brands marquee ── */
+@keyframes marquee-brands {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@layer utilities {
+  .animate-marquee-brands {
+    animation: marquee-brands 30s linear infinite;
+  }
+}
+
+.brands-track:has(*:hover) .animate-marquee-brands {
+  animation-play-state: paused;
+}
+
+
+/* Desactiva animación por defecto del Sheet de shadcn */
+[data-state="open"][data-side="right"] {
+  animation: none !important;
+  transform: translateX(0) !important;
+}
+[data-state="closed"][data-side="right"] {
+  animation: none !important;
 }
