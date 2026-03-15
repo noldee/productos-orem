@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { Star } from "lucide-react";
 
 interface ReviewCardProps {
   name: string;
@@ -14,40 +15,34 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   text,
   img,
 }) => (
-  <div className="px-3 shrink-0 w-[300px] md:w-[400px]">
-    <div
-      className="group/card h-full flex flex-col justify-between
-      p-6 md:p-8 rounded-3xl
-      bg-slate-50 border-2 border-slate-200
-      hover:border-[#00AEEF] hover:bg-white hover:shadow-[0_20px_40px_rgba(0,174,239,0.12)]
-      transition-all duration-500 cursor-pointer"
-    >
-      <div>
-        <span className="text-5xl md:text-6xl font-black text-[#8CC63F] leading-none block mb-3">
-          "
-        </span>
-        <p className="text-sm md:text-base text-slate-600 leading-relaxed font-semibold italic whitespace-normal mb-6">
-          {text}
-        </p>
+  <article className="px-4 shrink-0 w-[320px] md:w-[380px] group/card">
+    <div className="bg-arena border-2 border-slate-100 rounded-[3rem] p-8 md:p-10 text-center shadow-lg hover:shadow-2xl hover:border-terracota/30 transition-all duration-500 flex flex-col items-center h-full">
+      {/* Imagen Circular */}
+      <div className="relative w-20 h-20 rounded-full overflow-hidden mb-4 shadow-md border-4 border-crema group-hover/card:scale-110 transition-transform duration-500">
+        <Image src={img} fill className="object-cover" alt={name} />
       </div>
-      <div className="flex items-center gap-3 pt-4 border-t border-slate-200">
-        <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-xl overflow-hidden shrink-0 shadow border-2 border-white">
-          <Image
-            src={img}
-            fill
-            className="object-cover grayscale group-hover/card:grayscale-0 transition-all duration-700"
-            alt={name}
-          />
+
+      <h3 className="text-negro font-black uppercase tracking-tighter text-lg mb-4">
+        {name}
+      </h3>
+
+      {/* Rating */}
+      <div className="flex items-center gap-2 mb-6">
+        <div className="flex gap-1 text-musgo">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} size={16} fill="currentColor" stroke="none" />
+          ))}
         </div>
-        <div className="min-w-0">
-          <p className="text-[10px] md:text-xs font-black uppercase tracking-tighter text-slate-900 truncate">
-            {name}
-          </p>
-          <p className="text-[9px] md:text-[10px] font-black text-[#00AEEF] uppercase tracking-wider mt-0.5 truncate">
-            {role}
-          </p>
-        </div>
+        <span className="font-black text-slate-400 text-sm">5.0</span>
       </div>
+
+      <p className="text-slate-500 text-sm md:text-base leading-relaxed font-medium italic mb-6">
+        &ldquo;{text}&rdquo;
+      </p>
+
+      <span className="text-[10px] font-black text-terracota uppercase tracking-[0.2em] mt-auto">
+        {role}
+      </span>
     </div>
-  </div>
+  </article>
 );

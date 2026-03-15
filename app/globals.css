@@ -234,7 +234,6 @@ body::-webkit-scrollbar-thumb:hover {
   animation-play-state: paused;
 }
 
-
 /* Desactiva animación por defecto del Sheet de shadcn */
 [data-state="open"][data-side="right"] {
   animation: none !important;
@@ -242,4 +241,51 @@ body::-webkit-scrollbar-thumb:hover {
 }
 [data-state="closed"][data-side="right"] {
   animation: none !important;
+}
+/* Contenedor: oculta lo que se sale */
+.marquee-wrapper {
+  overflow: hidden;
+  display: flex;
+  width: 100%;
+}
+
+/* Track: todos los items en una línea, ancho natural */
+.marquee-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+}
+
+/* FILA 1 — va hacia la izquierda */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* FILA 2 — va hacia la derecha */
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.marquee-left {
+  animation: marquee-left 40s linear infinite;
+}
+
+.marquee-right {
+  animation: marquee-right 40s linear infinite;
+}
+
+/* Pausa al hover en el wrapper padre */
+.group:hover .marquee-left,
+.group:hover .marquee-right {
+  animation-play-state: paused;
 }

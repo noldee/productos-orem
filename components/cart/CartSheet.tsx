@@ -118,7 +118,7 @@ export function CartSheet() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20, scale: 0.95 }}
                     transition={{ duration: 0.25 }}
-                    className="flex gap-4 items-center bg-stone-50 rounded-2xl  border border-stone-100 shadow-sm"
+                    className="flex gap-4 items-center bg-stone-50 rounded-2xl p-3 border border-stone-100 shadow-sm" 
                   >
                     {/* Imagen del Producto */}
                     <div className="relative w-24 h-24 flex-none rounded-xl overflow-hidden bg-white border border-stone-100 shadow-inner">
