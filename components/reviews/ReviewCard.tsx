@@ -16,7 +16,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   img,
 }) => (
   <article className="px-4 shrink-0 w-[320px] md:w-[380px] group/card">
-    <div className="bg-arena border-2 border-slate-100 rounded-[3rem] p-8 md:p-10 text-center shadow-lg hover:shadow-2xl hover:border-terracota/30 transition-all duration-500 flex flex-col items-center h-full">
+    <div className="bg-[color:var(--color-card)]/90 border-2 border-slate-100 rounded-[3rem] p-8 md:p-10 text-center  hover:shadow hover:border-terracota/30 transition-all duration-500 flex flex-col items-center h-full">
       {/* Imagen Circular */}
       <div className="relative w-20 h-20 rounded-full overflow-hidden mb-4 shadow-md border-4 border-crema group-hover/card:scale-110 transition-transform duration-500">
         <Image src={img} fill className="object-cover" alt={name} />
