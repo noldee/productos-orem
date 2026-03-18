@@ -101,58 +101,61 @@ export default function RegisterPage() {
           </header>
 
           <form onSubmit={handleRegister} className="space-y-5">
+            {/* Nombre o Razón Social */}
             <div className="space-y-2">
               <label className="text-[9px] uppercase tracking-widest text-slate-500 font-black ml-1">
                 Nombre o Razón Social
               </label>
               <div className="relative">
                 <User
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   size={16}
                 />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#8CC63F] rounded-xl outline-none text-sm transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#8CC63F] rounded-xl outline-none text-sm transition-all"
                   placeholder="Ej: Constructora M&G"
                 />
               </div>
             </div>
 
+            {/* Correo Electrónico */}
             <div className="space-y-2">
               <label className="text-[9px] uppercase tracking-widest text-slate-500 font-black ml-1">
                 Correo Electrónico
               </label>
               <div className="relative">
                 <Mail
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   size={16}
                 />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#8CC63F] rounded-xl outline-none text-sm transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#8CC63F] rounded-xl outline-none text-sm transition-all"
                   placeholder="admin@empresa.com"
                 />
               </div>
             </div>
 
+            {/* Contraseña */}
             <div className="space-y-2">
               <label className="text-[9px] uppercase tracking-widest text-slate-500 font-black ml-1">
                 Contraseña
               </label>
               <div className="relative">
                 <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   size={16}
                 />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#8CC63F] rounded-xl outline-none text-sm transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#8CC63F] rounded-xl outline-none text-sm transition-all"
                   placeholder="••••••••"
                 />
               </div>
@@ -163,7 +166,7 @@ export default function RegisterPage() {
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-[10px] text-red-500 font-black text-center bg-red-50 py-3 rounded-xl uppercase tracking-tight"
+                  className="text-[10px] text-red-600 font-black text-center bg-red-50 py-3 rounded-xl uppercase tracking-tight border border-red-100"
                 >
                   {error}
                 </motion.p>
@@ -173,7 +176,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-slate-900 text-white rounded-xl text-[11px] uppercase tracking-[0.2em] font-black hover:bg-[#8CC63F] transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-4 bg-slate-900 text-white rounded-xl text-[11px] uppercase tracking-[0.2em] font-black hover:bg-[#8CC63F] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Verificando Datos..." : "Registrar Empresa"}
             </button>

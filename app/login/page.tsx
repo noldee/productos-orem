@@ -96,25 +96,28 @@ export default function LoginPage() {
           </header>
 
           <div className="space-y-6">
+            {/* Campo Correo */}
             <div className="space-y-2">
               <label className="text-[9px] uppercase tracking-widest text-slate-500 font-black ml-1">
                 Correo Electrónico
               </label>
               <div className="relative">
                 <Mail
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   size={16}
                 />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
+                  // text-slate-900 asegura que siempre sea oscuro
+                  className="w-full pl-12 pr-4 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
                   placeholder="usuario@mg-sac.com"
                 />
               </div>
             </div>
 
+            {/* Campo Contraseña */}
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
                 <label className="text-[9px] uppercase tracking-widest text-slate-500 font-black">
@@ -129,7 +132,7 @@ export default function LoginPage() {
               </div>
               <div className="relative">
                 <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   size={16}
                 />
                 <input
@@ -137,7 +140,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
+                  className="w-full pl-12 pr-4 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
                   placeholder="••••••••"
                 />
               </div>

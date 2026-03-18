@@ -151,27 +151,26 @@ function ResetPasswordForm() {
                 </header>
 
                 <div className="space-y-5">
-                  {/* Password Input */}
                   <div className="space-y-2">
                     <label className="text-[9px] uppercase tracking-widest text-slate-500 font-black ml-1">
                       Nueva Contraseña
                     </label>
                     <div className="relative">
                       <Lock
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                         size={16}
                       />
                       <input
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
+                        className="w-full pl-12 pr-12 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
                         placeholder="Mínimo 6 caracteres"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                       >
                         {showPassword ? (
                           <EyeOff size={16} />
@@ -182,14 +181,13 @@ function ResetPasswordForm() {
                     </div>
                   </div>
 
-                  {/* Confirm Password Input */}
                   <div className="space-y-2">
                     <label className="text-[9px] uppercase tracking-widest text-slate-500 font-black ml-1">
                       Confirmar Contraseña
                     </label>
                     <div className="relative">
                       <ShieldCheck
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                         size={16}
                       />
                       <input
@@ -197,7 +195,7 @@ function ResetPasswordForm() {
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
+                        className="w-full pl-12 pr-4 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
                         placeholder="Repite la contraseña"
                       />
                     </div>
@@ -208,7 +206,7 @@ function ResetPasswordForm() {
                       <motion.p
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-[10px] text-red-500 font-black text-center bg-red-50 py-3 rounded-xl border border-red-100 uppercase tracking-tight"
+                        className="text-[10px] text-red-600 font-black text-center bg-red-50 py-3 rounded-xl border border-red-100 uppercase tracking-tight"
                       >
                         {error}
                       </motion.p>
@@ -227,7 +225,6 @@ function ResetPasswordForm() {
                     )}
                   </button>
                 </div>
-
                 <footer className="mt-12 pt-8 border-t border-slate-100 text-center">
                   <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-4">
                     ¿Problemas con el enlace?

@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
                     </label>
                     <div className="relative">
                       <Mail
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" // Subimos a 400 para mejor visibilidad
                         size={16}
                       />
                       <input
@@ -136,7 +136,7 @@ export default function ForgotPasswordPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl"
+                        className="w-full pl-12 pr-4 py-3.5 text-slate-900 bg-slate-50 border border-slate-100 focus:border-[#00AEEF] focus:bg-white outline-none transition-all text-sm rounded-xl placeholder:text-slate-400"
                         placeholder="ejemplo@mg-sac.com"
                       />
                     </div>
