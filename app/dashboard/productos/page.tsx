@@ -14,6 +14,7 @@ import {
   Eye,
   Droplet,
   Zap,
+  Check,
 } from "lucide-react";
 import {
   Table,
@@ -25,18 +26,11 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
-// IMPORTANTE: Agregamos DialogTitle y DialogDescription
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-// --- Interfaces ---
 interface SelectOption {
   id: number;
   name: string;
@@ -81,16 +75,13 @@ export default function ProductosPage() {
   const [lineas, setLineas] = useState<SelectOption[]>([]);
   const [aromas, setAromas] = useState<SelectOption[]>([]);
   const [formatos, setFormatos] = useState<SelectOption[]>([]);
-
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
-
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [previewImg, setPreviewImg] = useState<string>("");
-
+  const [previewImg, setPreviewImg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchAll = async () => {
@@ -103,16 +94,11 @@ export default function ProductosPage() {
         api.get("/aromas"),
         api.get("/formatos"),
       ]);
-
-      const rawProducts = Array.isArray(p.data) ? p.data : p.data?.data || [];
-
-      setProducts(rawProducts);
+      setProducts(Array.isArray(p.data) ? p.data : p.data?.data || []);
       setCategories(c.data || []);
       setLineas(l.data || []);
       setAromas(a.data || []);
       setFormatos(f.data || []);
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
     } finally {
       setLoading(false);
     }
@@ -122,14 +108,14 @@ export default function ProductosPage() {
     fetchAll();
   }, []);
 
-  const getRelationName = (
+  const getName = (
     item: any,
     list: SelectOption[],
-    relationKey: string,
+    rel: string,
     idKey: string,
   ) => {
-    if (item[relationKey]?.name) return item[relationKey].name;
-    const id = item[idKey] || item[relationKey];
+    if (item[rel]?.name) return item[rel].name;
+    const id = item[idKey] || item[rel];
     return list.find((o) => o.id === id)?.name || "—";
   };
 
@@ -143,11 +129,12 @@ export default function ProductosPage() {
   const openEdit = (p: Product) => {
     setEditingProduct(p);
     setForm({
+      ...emptyForm,
       name: p.name || "",
       desc: p.desc || "",
       precio: String(p.precio || ""),
       img: p.img || "",
-      badge: p.badge ?? "",
+      badge: p.badge || "",
       biodegradable: !!p.biodegradable,
       concentrado: !!p.concentrado,
       categoryId: String(p.categoryId || p.category?.id || ""),
@@ -169,8 +156,6 @@ export default function ProductosPage() {
       });
       setForm((f) => ({ ...f, img: data.url }));
       setPreviewImg(data.url);
-    } catch (e) {
-      console.error(e);
     } finally {
       setUploading(false);
     }
@@ -183,12 +168,11 @@ export default function ProductosPage() {
       const payload = {
         ...form,
         precio: Number(form.precio),
-        categoryId: form.categoryId ? Number(form.categoryId) : null,
-        lineaId: form.lineaId ? Number(form.lineaId) : null,
-        aromaId: form.aromaId ? Number(form.aromaId) : null,
-        formatoId: form.formatoId ? Number(form.formatoId) : null,
+        categoryId: form.categoryId ? Number(form.categoryId) : undefined,
+        lineaId: form.lineaId ? Number(form.lineaId) : undefined,
+        aromaId: form.aromaId ? Number(form.aromaId) : undefined,
+        formatoId: form.formatoId ? Number(form.formatoId) : undefined,
       };
-
       if (editingProduct) {
         await api.put(`/products/${editingProduct.id}`, payload);
       } else {
@@ -196,8 +180,8 @@ export default function ProductosPage() {
       }
       setShowForm(false);
       fetchAll();
-    } catch (error) {
-      console.error("Error al guardar:", error);
+    } catch (e) {
+      console.error("Error al guardar:", e);
     } finally {
       setSaving(false);
     }
@@ -205,12 +189,8 @@ export default function ProductosPage() {
 
   const handleDelete = async (p: Product) => {
     if (!confirm(`¿Eliminar "${p.name}"?`)) return;
-    try {
-      await api.delete(`/products/${p.id}`);
-      fetchAll();
-    } catch (e) {
-      console.error(e);
-    }
+    await api.delete(`/products/${p.id}`);
+    fetchAll();
   };
 
   const SelectField = ({
@@ -228,7 +208,7 @@ export default function ProductosPage() {
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 focus:outline-none focus:border-stone-400 pr-8"
+          className="w-full appearance-none rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 focus:outline-none focus:border-stone-400 pr-8 h-11"
         >
           <option value="">{placeholder}</option>
           {options.map((o: any) => (
@@ -246,59 +226,77 @@ export default function ProductosPage() {
   );
 
   return (
-    <div className="w-full space-y-8 p-4 md:p-10 bg-white min-h-screen">
+    <div className="w-full space-y-6 p-4 md:p-8 max-w-[1600px] mx-auto overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-stone-50 p-6 md:p-8 rounded-[32px] border border-stone-100">
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-[22px] bg-stone-900 flex items-center justify-center shadow-2xl shadow-stone-200">
-            <ShoppingBag size={28} className="text-white" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-stone-100">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-stone-900 flex items-center justify-center shadow-lg shadow-stone-200">
+            <ShoppingBag size={22} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
+            <h1 className="text-2xl font-bold tracking-tight text-stone-900">
               Productos
             </h1>
-            <p className="text-stone-500 font-medium">
-              {products.length} artículos registrados
+            <p className="text-sm text-stone-400">
+              {products.length} artículos en tu catálogo
             </p>
           </div>
         </div>
         <Button
           onClick={openCreate}
-          className="w-full md:w-auto bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-14 px-8 gap-3"
+          className="bg-stone-900 hover:bg-stone-800 text-white rounded-full px-6 h-11 gap-2 text-xs font-bold uppercase tracking-widest transition-all hover:shadow-lg active:scale-95"
         >
-          <Plus size={20} /> Nuevo producto
+          <Plus size={16} /> Nuevo producto
         </Button>
       </div>
 
-      {/* Tabla */}
-      <Card className="border-none shadow-2xl shadow-stone-100 rounded-[32px] overflow-hidden">
+      {/* Tabla con Scroll Horizontal Controlado */}
+      <Card className="border border-stone-100 shadow-sm rounded-3xl overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center items-center py-32">
-              <Loader2 className="h-10 w-10 animate-spin text-stone-200" />
+            <div className="flex flex-col justify-center items-center py-32 gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-stone-900" />
+              <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
+                Cargando catálogo...
+              </p>
             </div>
           ) : products.length === 0 ? (
-            <div className="py-20 text-center text-stone-400 font-medium">
-              No se encontraron productos.
+            <div className="flex flex-col items-center justify-center py-24 text-center px-8">
+              <div className="w-16 h-16 rounded-3xl bg-stone-50 flex items-center justify-center mb-4">
+                <ShoppingBag size={28} className="text-stone-200" />
+              </div>
+              <p className="text-stone-400 italic mb-4">
+                No hay productos registrados aún.
+              </p>
+              <Button
+                onClick={openCreate}
+                variant="outline"
+                className="rounded-full border-stone-200 text-stone-600 font-bold uppercase text-[10px] tracking-widest"
+              >
+                Crear el primero
+              </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table className="min-w-[800px]">
-                <TableHeader className="bg-stone-50/50">
-                  <TableRow className="border-stone-100">
-                    <TableHead className="py-6 pl-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest">
-                      Producto
+            <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-stone-200">
+              <Table className="min-w-[900px]">
+                <TableHeader>
+                  <TableRow className="bg-stone-50/50 hover:bg-stone-50/50 border-stone-100">
+                    <TableHead className="pl-6 text-[10px] font-bold uppercase tracking-widest text-stone-400 w-20">
+                      Img
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
-                      Categoría
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                      Info. Producto
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                      Categoría / Línea
+                    </TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 w-32">
                       Precio
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 w-28">
                       Estado
                     </TableHead>
-                    <TableHead className="text-right pr-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                    <TableHead className="pr-6 text-[10px] font-bold uppercase tracking-widest text-stone-400 text-right w-36">
                       Acciones
                     </TableHead>
                   </TableRow>
@@ -307,95 +305,92 @@ export default function ProductosPage() {
                   {products.map((p) => (
                     <TableRow
                       key={p.id}
-                      className="group border-stone-50 hover:bg-stone-50/30 transition-colors"
+                      className="border-stone-50 hover:bg-stone-50/30 transition-colors group"
                     >
-                      <TableCell className="py-5 pl-8">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 flex-shrink-0">
-                            {p.img ? (
-                              <img
-                                src={p.img}
-                                alt={p.name}
-                                className="w-full h-full object-cover"
+                      <TableCell className="pl-6 py-4">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-stone-100 border border-stone-100 shadow-sm">
+                          {p.img ? (
+                            <img
+                              src={p.img}
+                              alt={p.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ShoppingBag
+                                size={16}
+                                className="text-stone-300"
                               />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-stone-300">
-                                <ShoppingBag size={20} />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-0.5">
-                            <span className="font-bold text-stone-900 text-base">
-                              {p.name}
-                            </span>
-                            <div className="flex gap-1">
-                              {p.biodegradable && (
-                                <Badge className="bg-green-50 text-green-600 border-none text-[8px] px-1.5 py-0">
-                                  BIO
-                                </Badge>
-                              )}
-                              {p.concentrado && (
-                                <Badge className="bg-blue-50 text-blue-600 border-none text-[8px] px-1.5 py-0">
-                                  CONC
-                                </Badge>
-                              )}
                             </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <div className="flex flex-col gap-1.5">
+                          <span className="font-bold text-stone-800 text-sm">
+                            {p.name}
+                          </span>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {p.badge && (
+                              <span className="text-[8px] uppercase tracking-tighter font-black bg-stone-900 text-white px-2 py-0.5 rounded-md italic">
+                                {p.badge}
+                              </span>
+                            )}
+                            {p.biodegradable && (
+                              <span className="flex items-center gap-1 text-[9px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100">
+                                <Droplet size={8} /> Bio
+                              </span>
+                            )}
+                            {p.concentrado && (
+                              <span className="flex items-center gap-1 text-[9px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100">
+                                <Zap size={8} /> Conc.
+                              </span>
+                            )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-stone-700">
-                            {getRelationName(
-                              p,
-                              categories,
-                              "category",
-                              "categoryId",
-                            )}
+                          <span className="text-sm text-stone-600 font-medium">
+                            {getName(p, categories, "category", "categoryId")}
                           </span>
-                          <span className="text-[11px] text-stone-400 font-medium uppercase">
-                            {getRelationName(p, lineas, "linea", "lineaId")}
+                          <span className="text-[10px] text-stone-400 uppercase tracking-widest">
+                            {getName(p, lineas, "linea", "lineaId")}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <span className="font-black text-stone-900">
-                          S/ {Number(p.precio || 0).toFixed(2)}
+                      <TableCell className="py-4">
+                        <span className="font-black text-stone-900 text-base">
+                          S/ {Number(p.precio).toFixed(2)}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase ${p.active ? "bg-emerald-50 text-emerald-600" : "bg-stone-100 text-stone-400"}`}
+                      <TableCell className="py-4">
+                        <span
+                          className={`text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full border ${p.active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-stone-50 text-stone-400 border-stone-100"}`}
                         >
                           {p.active ? "Activo" : "Inactivo"}
-                        </div>
+                        </span>
                       </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
+                      <TableCell className="pr-6 py-4">
+                        <div className="flex justify-end items-center gap-1">
+                          <button
                             onClick={() => setViewProduct(p)}
-                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-blue-600 hover:bg-blue-50"
+                            className="h-9 w-9 rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
                           >
-                            <Eye size={17} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
+                            <Eye size={16} />
+                          </button>
+                          <button
                             onClick={() => openEdit(p)}
-                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-amber-600 hover:bg-amber-50"
+                            className="h-9 w-9 rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
                           >
-                            <Pencil size={17} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
+                            <Pencil size={16} />
+                          </button>
+                          <button
                             onClick={() => handleDelete(p)}
-                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50"
+                            className="h-9 w-9 rounded-xl flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all"
                           >
-                            <Trash2 size={17} />
-                          </Button>
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -407,224 +402,290 @@ export default function ProductosPage() {
         </CardContent>
       </Card>
 
-      {/* --- MODAL DE VISTA (CORREGIDO) --- */}
+      {/* Modal Ver producto */}
       <Dialog open={!!viewProduct} onOpenChange={() => setViewProduct(null)}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden rounded-[32px] border-none">
+        <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
           {viewProduct && (
-            <div>
-              {/* ACCESIBILIDAD: Título y Descripción ocultos visualmente */}
-              <DialogTitle className="sr-only">
-                Detalles de {viewProduct.name}
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                Vista detallada con información de precio, línea y
-                características.
-              </DialogDescription>
-
-              <div className="relative h-64 bg-stone-100">
+            <>
+              <DialogTitle className="sr-only">{viewProduct.name}</DialogTitle>
+              <div className="h-64 relative">
                 <img
                   src={viewProduct.img}
-                  alt={viewProduct.name}
                   className="w-full h-full object-cover"
+                  alt=""
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-6 left-6 text-white">
-                  <Badge className="bg-white/20 backdrop-blur-md text-white border-white/20 mb-2">
-                    {getRelationName(
-                      viewProduct,
-                      categories,
-                      "category",
-                      "categoryId",
-                    )}
-                  </Badge>
-                  <h2 className="text-2xl font-bold">{viewProduct.name}</h2>
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900 to-transparent opacity-80" />
+                <div className="absolute bottom-6 left-8 right-8">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold mb-1">
+                    {getName(viewProduct, categories, "category", "categoryId")}
+                  </p>
+                  <h2 className="text-3xl font-bold text-white leading-tight">
+                    {viewProduct.name}
+                  </h2>
                 </div>
               </div>
-              <div className="p-8 space-y-6 bg-white text-stone-900">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
-                      Precio
-                    </p>
-                    <p className="text-4xl font-black">
-                      S/ {Number(viewProduct.precio).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
-                      Línea
-                    </p>
-                    <p className="text-lg font-bold">
-                      {getRelationName(viewProduct, lineas, "linea", "lineaId")}
-                    </p>
-                  </div>
+              <div className="p-8 space-y-6">
+                <p className="text-stone-500 text-sm leading-relaxed">
+                  {viewProduct.desc ||
+                    "Este producto es parte de nuestra línea exclusiva de limpieza premium."}
+                </p>
+                <div className="flex gap-2">
+                  {viewProduct.biodegradable && (
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl border border-emerald-100">
+                      <Droplet size={10} /> Biodegradable
+                    </span>
+                  )}
+                  {viewProduct.concentrado && (
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-100">
+                      <Zap size={10} /> Concentrado
+                    </span>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div
-                    className={`p-4 rounded-2xl border flex items-center gap-3 ${viewProduct.biodegradable ? "bg-green-50 text-green-700 border-green-100" : "bg-stone-50 text-stone-300 opacity-50"}`}
+                <div className="flex items-center justify-between pt-6 border-t border-stone-100">
+                  <p className="text-4xl font-black text-stone-900">
+                    S/ {Number(viewProduct.precio).toFixed(2)}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setViewProduct(null);
+                      openEdit(viewProduct);
+                    }}
+                    className="px-6 py-3 bg-stone-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-all active:scale-95 shadow-lg shadow-stone-200"
                   >
-                    <Droplet size={20} />
-                    <span className="text-[10px] font-bold uppercase">
-                      Biodegradable
-                    </span>
-                  </div>
-                  <div
-                    className={`p-4 rounded-2xl border flex items-center gap-3 ${viewProduct.concentrado ? "bg-blue-50 text-blue-700 border-blue-100" : "bg-stone-50 text-stone-300 opacity-50"}`}
-                  >
-                    <Zap size={20} />
-                    <span className="text-[10px] font-bold uppercase">
-                      Concentrado
-                    </span>
-                  </div>
+                    Editar Detalle
+                  </button>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* --- FORMULARIO (MODAL ANIMADO CON FRAMER MOTION) --- */}
+      {/* Modal Formulario Estilizado */}
       <AnimatePresence>
         {showForm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-md p-4"
             onClick={(e) => e.target === e.currentTarget && setShowForm(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-[40px] shadow-2xl w-full max-w-3xl my-auto overflow-hidden"
+              initial={{ y: 50, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 50, opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[2rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-stone-100"
             >
-              <div className="px-10 pt-10 pb-6 flex justify-between items-center border-b border-stone-50">
-                <h2 className="text-2xl font-bold text-stone-900">
-                  {editingProduct ? "Editar" : "Nuevo"} Producto
-                </h2>
+              <div className="flex items-center justify-between px-10 pt-10 pb-6 sticky top-0 bg-white/80 backdrop-blur-md z-10">
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900">
+                    {editingProduct ? "Editar Producto" : "Nuevo Producto"}
+                  </h2>
+                  <p className="text-[10px] text-stone-400 mt-1 uppercase tracking-[0.2em] font-bold">
+                    Gestión de inventario M&G
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center hover:bg-stone-200 transition-colors"
+                  className="w-10 h-10 rounded-2xl bg-stone-50 hover:bg-stone-100 flex items-center justify-center transition-colors"
                 >
-                  <X size={20} />
+                  <X size={18} className="text-stone-400" />
                 </button>
               </div>
 
-              <div className="p-10 space-y-8">
-                <div
-                  onClick={() => fileRef.current?.click()}
-                  className="relative w-full h-48 rounded-[32px] border-2 border-dashed border-stone-200 bg-stone-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-stone-400 transition-all"
-                >
-                  {previewImg ? (
-                    <img
-                      src={previewImg}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-stone-400 flex flex-col items-center gap-2">
-                      {uploading ? (
-                        <Loader2 className="animate-spin" />
-                      ) : (
+              <div className="px-10 py-6 space-y-8">
+                {/* Sección Imagen */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                  <div className="md:col-span-4 space-y-3">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                      Imagen Principal
+                    </label>
+                    <div
+                      onClick={() => fileRef.current?.click()}
+                      className="relative aspect-square cursor-pointer rounded-[2rem] border-2 border-dashed border-stone-200 hover:border-stone-400 transition-all overflow-hidden bg-stone-50 group"
+                    >
+                      {previewImg ? (
                         <>
-                          <ImagePlus size={32} />
-                          <span className="text-[10px] font-bold uppercase tracking-widest">
-                            Subir Imagen del Producto
-                          </span>
+                          <img
+                            src={previewImg}
+                            alt="preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-stone-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-[10px] font-bold uppercase tracking-widest">
+                              Cambiar Foto
+                            </span>
+                          </div>
                         </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full gap-3">
+                          {uploading ? (
+                            <Loader2
+                              size={24}
+                              className="animate-spin text-stone-900"
+                            />
+                          ) : (
+                            <>
+                              <ImagePlus size={32} className="text-stone-200" />
+                              <p className="text-[9px] text-stone-400 uppercase font-black">
+                                Subir archivo
+                              </p>
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) =>
-                    e.target.files?.[0] && handleImageUpload(e.target.files[0])
-                  }
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-2 space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase text-stone-400">
-                      Nombre
-                    </label>
-                    <Input
-                      value={form.name}
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
                       onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
+                        e.target.files?.[0] &&
+                        handleImageUpload(e.target.files[0])
                       }
-                      className="rounded-xl h-12"
-                      placeholder="Ej. Limpiador Multiusos"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase text-stone-400">
-                      Precio (S/)
-                    </label>
-                    <Input
-                      type="number"
-                      value={form.precio}
-                      onChange={(e) =>
-                        setForm({ ...form, precio: e.target.value })
-                      }
-                      className="rounded-xl h-12 font-bold"
-                      placeholder="0.00"
-                    />
+
+                  {/* Datos principales */}
+                  <div className="md:col-span-8 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                          Nombre del Producto
+                        </label>
+                        <Input
+                          placeholder="Ej. Limpiador Multiusos Lavanda"
+                          value={form.name}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, name: e.target.value }))
+                          }
+                          className="rounded-xl border-stone-200 h-12 focus-visible:ring-stone-900"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                          Precio (PEN)
+                        </label>
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          value={form.precio}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, precio: e.target.value }))
+                          }
+                          className="rounded-xl border-stone-200 h-12 font-bold text-lg"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                        Descripción Corta
+                      </label>
+                      <Textarea
+                        placeholder="Describe las bondades del producto..."
+                        value={form.desc}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, desc: e.target.value }))
+                        }
+                        rows={3}
+                        className="rounded-xl border-stone-200 resize-none focus-visible:ring-stone-900"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <SelectField
+                        label="Categoría"
+                        value={form.categoryId}
+                        onChange={(v: string) =>
+                          setForm((f) => ({ ...f, categoryId: v }))
+                        }
+                        options={categories}
+                        placeholder="Seleccionar"
+                      />
+                      <SelectField
+                        label="Línea de Producto"
+                        value={form.lineaId}
+                        onChange={(v: string) =>
+                          setForm((f) => ({ ...f, lineaId: v }))
+                        }
+                        options={lineas}
+                        placeholder="Seleccionar"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <SelectField
-                    label="Categoría"
-                    value={form.categoryId}
-                    options={categories}
-                    onChange={(v: any) => setForm({ ...form, categoryId: v })}
-                    placeholder="Sel. Cat."
-                  />
-                  <SelectField
-                    label="Línea"
-                    value={form.lineaId}
-                    options={lineas}
-                    onChange={(v: any) => setForm({ ...form, lineaId: v })}
-                    placeholder="Sel. Línea"
-                  />
-                  <SelectField
-                    label="Aroma"
-                    value={form.aromaId}
-                    options={aromas}
-                    onChange={(v: any) => setForm({ ...form, aromaId: v })}
-                    placeholder="Sel. Aroma"
-                  />
-                  <SelectField
-                    label="Formato"
-                    value={form.formatoId}
-                    options={formatos}
-                    onChange={(v: any) => setForm({ ...form, formatoId: v })}
-                    placeholder="Sel. Form."
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t border-stone-100 pt-8">
+                  <div className="grid grid-cols-2 gap-4">
+                    <SelectField
+                      label="Aroma (Opcional)"
+                      value={form.aromaId}
+                      onChange={(v: string) =>
+                        setForm((f) => ({ ...f, aromaId: v }))
+                      }
+                      options={aromas}
+                      placeholder="Ninguno"
+                    />
+                    <SelectField
+                      label="Formato"
+                      value={form.formatoId}
+                      onChange={(v: string) =>
+                        setForm((f) => ({ ...f, formatoId: v }))
+                      }
+                      options={formatos}
+                      placeholder="Ninguno"
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    {[
+                      {
+                        key: "biodegradable",
+                        label: "Biodegradable",
+                        color: "bg-emerald-500",
+                      },
+                      {
+                        key: "concentrado",
+                        label: "Concentrado",
+                        color: "bg-blue-500",
+                      },
+                    ].map(({ key, label, color }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({ ...f, [key]: !(f as any)[key] }))
+                        }
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all ${(form as any)[key] ? `${color} text-white border-transparent shadow-lg` : "border-stone-100 text-stone-400 bg-stone-50"}`}
+                      >
+                        {(form as any)[key] && <Check size={12} />} {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex gap-4 pt-4 pb-4">
+                {/* Footer del Modal */}
+                <div className="flex gap-4 pt-4 pb-10">
                   <Button
                     onClick={handleSave}
                     disabled={saving || uploading}
-                    className="flex-1 bg-stone-900 text-white rounded-2xl h-14 text-base font-bold"
+                    className="flex-1 bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-14 gap-3 text-xs font-bold uppercase tracking-widest shadow-xl shadow-stone-200"
                   >
                     {saving ? (
-                      <Loader2 className="animate-spin" />
-                    ) : editingProduct ? (
-                      "Guardar Cambios"
+                      <Loader2 size={18} className="animate-spin" />
                     ) : (
-                      "Publicar Producto"
+                      <Check size={18} />
                     )}
+                    {editingProduct
+                      ? "Actualizar Producto"
+                      : "Registrar en Catálogo"}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setShowForm(false)}
-                    className="px-8 rounded-2xl h-14 border-stone-200 font-bold"
+                    className="rounded-2xl h-14 px-10 border-stone-200 font-bold text-stone-400 uppercase text-[10px] tracking-widest"
                   >
                     Cancelar
                   </Button>

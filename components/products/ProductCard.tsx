@@ -5,7 +5,15 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCart } from "@/components/providers/CartProvider";
-import { BADGE_STYLES, type Product } from "@/lib/products";
+import type { Product } from "@/hooks/useCatalogFilters";
+
+const BADGE_STYLES: Record<string, string> = {
+  "Más vendido": "bg-terracota text-white",
+  Nuevo: "bg-musgo text-white",
+  Premium: "bg-stone-900 text-white",
+  Exclusivo: "bg-salvia text-stone-900",
+  Oferta: "bg-amber-400 text-stone-900",
+};
 
 interface ProductCardProps {
   product: Product;
@@ -20,7 +28,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
     addItem({
       id: product.id,
       name: product.name,
-      variant: `${product.linea} — ${product.formato}`,
+      variant: `${product.linea.name} — ${product.formato.name}`,
       price: product.precio,
       qty: 1,
       img: product.img,
@@ -38,7 +46,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
       transition={{ duration: 0.4, delay: index * 0.05 }}
       className="group bg-white rounded-[2rem] overflow-hidden border border-stone-100 hover:border-stone-200 hover:shadow-2xl hover:shadow-stone-200/60 transition-all duration-500 flex flex-col"
     >
-      {/* Contenedor de Imagen */}
+      {/* Imagen */}
       <div className="relative aspect-[4/3] overflow-hidden bg-stone-50">
         <Image
           src={product.img}
@@ -48,16 +56,12 @@ export function ProductCard({ product, index }: ProductCardProps) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
 
-        {/* Badge superior (ej: "Nuevo", "Best Seller") */}
         {product.badge && (
-          <span
-            className={`absolute top-4 left-4 px-3 py-1 rounded-full font-sans text-[9px] uppercase tracking-widest font-bold ${BADGE_STYLES[product.badge]}`}
-          >
+          <span className={`absolute top-4 left-4 px-3 py-1 rounded-full font-sans text-[9px] uppercase tracking-widest font-bold ${BADGE_STYLES[product.badge] ?? "bg-stone-900 text-white"}`}>
             {product.badge}
           </span>
         )}
 
-        {/* Badges de características (Bio, Concentrado) */}
         <div className="absolute bottom-4 left-4 flex gap-2">
           {product.biodegradable && (
             <span className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full font-sans text-[8px] uppercase tracking-wider text-musgo font-bold border border-musgo/20">
@@ -72,11 +76,11 @@ export function ProductCard({ product, index }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Info del Producto */}
+      {/* Info */}
       <div className="p-6 flex flex-col flex-1">
         <div className="mb-2">
           <p className="font-sans text-[9px] uppercase tracking-[0.3em] text-stone-400 mb-1">
-            {product.linea} · {product.formato}
+            {product.linea.name} · {product.formato.name}
           </p>
           <h3 className="font-serif italic text-xl text-stone-900 leading-tight">
             {product.name}
@@ -86,32 +90,18 @@ export function ProductCard({ product, index }: ProductCardProps) {
           {product.desc}
         </p>
 
-        {/* Precio + Botón de Acción */}
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-stone-100">
           <span className="font-serif text-2xl font-semibold text-stone-900">
-            S/ {product.precio.toFixed(2)}
+            S/ {Number(product.precio).toFixed(2)}
           </span>
-
           <button
             onClick={handleAdd}
-            /* CAMBIO CLAVE: 
-               Usamos clases condicionales de Tailwind en lugar de style={{ backgroundColor }}.
-               bg-musgo y bg-negro ahora son clases nativas de tu @theme.
-            */
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-sans text-[10px] uppercase tracking-widest font-bold transition-all duration-300 active:scale-95 ${
-              added ? "bg-musgo" : "bg-negro hover:opacity-90"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-sans text-[10px] uppercase tracking-widest font-bold transition-all duration-300 active:scale-95 ${added ? "bg-musgo" : "bg-negro hover:opacity-90"}`}
           >
             {added ? (
-              <>
-                <Check size={13} />
-                Añadido
-              </>
+              <><Check size={13} /> Añadido</>
             ) : (
-              <>
-                <ShoppingCart size={13} />
-                Añadir
-              </>
+              <><ShoppingCart size={13} /> Añadir</>
             )}
           </button>
         </div>

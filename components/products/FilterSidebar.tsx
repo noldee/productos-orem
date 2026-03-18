@@ -2,9 +2,16 @@
 
 import { X } from "lucide-react";
 import { CheckFilter } from "@/components/products/CheckFilter";
-import { LINEAS, AROMAS, FORMATOS } from "@/lib/products";
+
+interface SelectOption {
+  id: number;
+  name: string;
+}
 
 interface FilterSidebarProps {
+  lineas: SelectOption[];
+  aromas: SelectOption[];
+  formatos: SelectOption[];
   lineasActivas: string[];
   aromasActivos: string[];
   formatosActivos: string[];
@@ -22,6 +29,9 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({
+  lineas,
+  aromas,
+  formatos,
   lineasActivas,
   aromasActivos,
   formatosActivos,
@@ -38,7 +48,6 @@ export function FilterSidebar({
   onReset,
 }: FilterSidebarProps) {
   return (
-    // He añadido w-full y overflow-x-hidden para evitar desplazamientos raros
     <div className="space-y-10 w-full max-w-full pb-10 overflow-x-hidden">
       {/* Línea */}
       <section className="flex flex-col">
@@ -46,12 +55,12 @@ export function FilterSidebar({
           Línea
         </h4>
         <div className="flex flex-col gap-3">
-          {LINEAS.map((l) => (
+          {lineas.map((l) => (
             <CheckFilter
-              key={l}
-              label={l}
-              checked={lineasActivas.includes(l)}
-              onChange={() => onToggleLinea(l)}
+              key={l.id}
+              label={l.name}
+              checked={lineasActivas.includes(l.name)}
+              onChange={() => onToggleLinea(l.name)}
             />
           ))}
         </div>
@@ -63,12 +72,12 @@ export function FilterSidebar({
           Aroma
         </h4>
         <div className="flex flex-col gap-3">
-          {AROMAS.map((a) => (
+          {aromas.map((a) => (
             <CheckFilter
-              key={a}
-              label={a}
-              checked={aromasActivos.includes(a)}
-              onChange={() => onToggleAroma(a)}
+              key={a.id}
+              label={a.name}
+              checked={aromasActivos.includes(a.name)}
+              onChange={() => onToggleAroma(a.name)}
             />
           ))}
         </div>
@@ -80,12 +89,12 @@ export function FilterSidebar({
           Formato
         </h4>
         <div className="flex flex-col gap-3">
-          {FORMATOS.map((f) => (
+          {formatos.map((f) => (
             <CheckFilter
-              key={f}
-              label={f}
-              checked={formatosActivos.includes(f)}
-              onChange={() => onToggleFormato(f)}
+              key={f.id}
+              label={f.name}
+              checked={formatosActivos.includes(f.name)}
+              onChange={() => onToggleFormato(f.name)}
             />
           ))}
         </div>
@@ -129,7 +138,7 @@ export function FilterSidebar({
         </div>
       </section>
 
-      {/* Botón de Reset */}
+      {/* Reset */}
       {totalFiltros > 0 && (
         <div className="pt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <button

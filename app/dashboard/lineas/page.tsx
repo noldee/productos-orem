@@ -132,81 +132,101 @@ export default function LineasPage() {
       </div>
 
       {/* Tabla Principal */}
-      <Card className="border-none shadow-2xl shadow-stone-100 rounded-[32px] overflow-hidden">
+      <Card className="border-none shadow-2xl shadow-stone-100 rounded-[32px] overflow-hidden bg-white">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center items-center py-32 text-stone-200">
-              <Loader2 className="h-10 w-10 animate-spin" />
+            <div className="flex flex-col justify-center items-center py-32 gap-4">
+              <Loader2 className="h-10 w-10 animate-spin text-stone-200" />
+              <p className="text-stone-400 text-sm font-medium">
+                Cargando datos...
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-stone-50/50">
                   <TableRow className="border-stone-100">
-                    <TableHead className="py-6 pl-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-24">
-                      ID
+                    <TableHead className="py-6 pl-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-16">
+                      #
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest w-[30%]">
+                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest min-w-[200px]">
                       Nombre
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest hidden md:table-cell">
                       Descripción
                     </TableHead>
-                    <TableHead className="text-right pr-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest">
+                    <TableHead className="text-right pr-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-40">
                       Acciones
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lineas.map((linea) => (
-                    <TableRow key={linea.id} className="border-stone-50">
-                      <TableCell className="py-5 pl-8 font-mono text-stone-400 text-xs">
-                        #{linea.id}
-                      </TableCell>
-                      <TableCell className="font-bold text-stone-900 truncate max-w-[200px]">
-                        {linea.name}
-                      </TableCell>
-                      <TableCell className="text-stone-500">
-                        {/* TRUNCADO DE TEXTO AQUÍ */}
-                        <p className="line-clamp-1 italic max-w-[400px]">
-                          {linea.description || "—"}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => openView(linea)}
-                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-blue-600 hover:bg-blue-50 border-stone-100"
-                          >
-                            <Eye size={17} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => openForm(linea)}
-                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-stone-900 hover:bg-stone-100 border-stone-100"
-                          >
-                            <Pencil size={17} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => remove(linea.id)}
-                            disabled={deletingId === linea.id}
-                            className="h-10 w-10 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 border-stone-100"
-                          >
-                            {deletingId === linea.id ? (
-                              <Loader2 size={17} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={17} />
-                            )}
-                          </Button>
-                        </div>
+                  {lineas.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="h-48 text-center text-stone-400 italic"
+                      >
+                        No hay líneas registradas aún.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    // EL CAMBIO ESTÁ AQUÍ: Usamos "i" para la numeración
+                    lineas.map((linea, i) => (
+                      <TableRow
+                        key={linea.id}
+                        className="border-stone-50 group hover:bg-stone-50/30 transition-colors"
+                      >
+                        <TableCell className="py-5 pl-8 font-mono text-stone-400 text-xs">
+                          {/* Esto garantiza orden del 1 al N */}
+                          {String(i + 1).padStart(2, "0")}
+                        </TableCell>
+                        <TableCell className="font-bold text-stone-800">
+                          <span className="truncate block max-w-[250px]">
+                            {linea.name}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-stone-500 hidden md:table-cell">
+                          <p className="line-clamp-1 italic max-w-[400px] text-sm">
+                            {linea.description || "—"}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="flex justify-end gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openView(linea)}
+                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-blue-600 hover:bg-blue-50"
+                            >
+                              <Eye size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openForm(linea)}
+                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-stone-900 hover:bg-stone-100"
+                            >
+                              <Pencil size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => remove(linea.id)}
+                              disabled={deletingId === linea.id}
+                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50"
+                            >
+                              {deletingId === linea.id ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>

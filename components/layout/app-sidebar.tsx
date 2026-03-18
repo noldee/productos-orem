@@ -41,7 +41,7 @@ const navMain = [
 ];
 
 const navSecondary = [
-  { title: "Configuración", url: "/dashboard/settings", icon: IconSettings },
+  { title: "Configuración", url: "/dashboard/configuracion", icon: IconSettings },
   { title: "Ayuda", url: "#", icon: IconHelp },
   { title: "Volver al sitio", url: "/", icon: IconArrowLeft },
 ];
