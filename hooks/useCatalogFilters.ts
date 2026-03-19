@@ -13,10 +13,10 @@ export interface Product {
   biodegradable: boolean;
   concentrado: boolean;
   active: boolean;
-  category: { id: number; name: string };
-  linea: { id: number; name: string };
-  aroma: { id: number; name: string };
-  formato: { id: number; name: string };
+  category: { id: number; name: string } | null;
+  linea: { id: number; name: string } | null;
+  aroma: { id: number; name: string } | null;
+  formato: { id: number; name: string } | null;
 }
 
 interface SelectOption {
@@ -81,15 +81,21 @@ export function useCatalogFilters() {
 
   const filtered = useMemo(() => {
     let result = products.filter((p) => {
-      if (categoriaActiva !== "Todas" && p.category.name !== categoriaActiva)
+      if (categoriaActiva !== "Todas" && p.category?.name !== categoriaActiva)
         return false;
-      if (lineasActivas.length > 0 && !lineasActivas.includes(p.linea.name))
+      if (
+        lineasActivas.length > 0 &&
+        !lineasActivas.includes(p.linea?.name ?? "")
+      )
         return false;
-      if (aromasActivos.length > 0 && !aromasActivos.includes(p.aroma.name))
+      if (
+        aromasActivos.length > 0 &&
+        !aromasActivos.includes(p.aroma?.name ?? "")
+      )
         return false;
       if (
         formatosActivos.length > 0 &&
-        !formatosActivos.includes(p.formato.name)
+        !formatosActivos.includes(p.formato?.name ?? "")
       )
         return false;
       if (soloBio && !p.biodegradable) return false;
@@ -114,18 +120,15 @@ export function useCatalogFilters() {
     ordenPrecio,
   ]);
 
-  // Categorías dinámicas incluyendo "Todas"
   const categoriasDisponibles = ["Todas", ...categories.map((c) => c.name)];
 
   return {
-    // Data
     loadingData,
     categories,
     lineas,
     aromas,
     formatos,
     categoriasDisponibles,
-    // Filtros
     categoriaActiva,
     setCategoriaActiva,
     lineasActivas,
