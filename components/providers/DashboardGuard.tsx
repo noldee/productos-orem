@@ -34,6 +34,7 @@ export default function DashboardGuard({
   return (
     <SidebarProvider
       suppressHydrationWarning
+      className="overflow-x-hidden"
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -42,7 +43,7 @@ export default function DashboardGuard({
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <SiteHeader />
         {children}
       </SidebarInset>

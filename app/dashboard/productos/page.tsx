@@ -227,7 +227,7 @@ export default function ProductosPage() {
   );
 
   return (
-    <div className="w-full space-y-6 p-4 md:p-8 max-w-[1600px] mx-auto overflow-hidden">
+    <div className="w-full space-y-6 p-4 md:p-8 max-w-full overflow-x-hidden">
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-border">
         <div className="flex items-center gap-4">
@@ -478,233 +478,306 @@ export default function ProductosPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-hidden"
             onClick={(e) => e.target === e.currentTarget && setShowForm(false)}
           >
             <motion.div
-              initial={{ y: 50, opacity: 0, scale: 0.95 }}
+              initial={{ y: 40, opacity: 0, scale: 0.96 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 50, opacity: 0, scale: 0.95 }}
-              className="bg-card rounded-[2rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-border custom-scrollbar"
+              exit={{ y: 40, opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.25, ease: [0.19, 1, 0.22, 1] }}
+              className="bg-card rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-2xl border border-border custom-scrollbar"
             >
-              {/* Header del modal */}
-              <div className="flex items-center justify-between px-10 pt-10 pb-6 sticky top-0 bg-card/80 backdrop-blur-md z-10 border-b border-border">
+              {/* Header */}
+              <div className="flex items-center justify-between px-8 pt-8 pb-6 sticky top-0 bg-card/90 backdrop-blur-md z-10 border-b border-border rounded-t-3xl">
                 <div>
-                  <h2 className="text-2xl font-bold text-card-foreground">
+                  <h2 className="text-xl font-bold text-foreground tracking-tight">
                     {editingProduct ? "Editar Producto" : "Nuevo Producto"}
                   </h2>
-                  <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-[0.2em] font-bold">
-                    Gestión de inventario M&G
+                  <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-[0.2em] font-bold">
+                    {editingProduct
+                      ? `ID #${editingProduct.id}`
+                      : "Completa los campos requeridos"}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="w-10 h-10 rounded-2xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+                  className="w-9 h-9 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center transition-colors"
                 >
-                  <X size={18} className="text-muted-foreground" />
+                  <X size={16} className="text-muted-foreground" />
                 </button>
               </div>
 
-              <div className="px-10 py-6 space-y-8">
-                {/* Sección Imagen + datos principales */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                  <div className="md:col-span-4 space-y-3">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      Imagen Principal
-                    </label>
-                    <div
-                      onClick={() => fileRef.current?.click()}
-                      className="relative aspect-square cursor-pointer rounded-[2rem] border-2 border-dashed border-border hover:border-ring transition-all overflow-hidden bg-muted group"
-                    >
-                      {previewImg ? (
-                        <>
-                          <img
-                            src={previewImg}
-                            alt="preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white text-[10px] font-bold uppercase tracking-widest">
-                              Cambiar Foto
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full gap-3">
-                          {uploading ? (
-                            <Loader2
-                              size={24}
-                              className="animate-spin text-primary"
-                            />
-                          ) : (
-                            <>
-                              <ImagePlus
-                                size={32}
-                                className="text-muted-foreground/30"
-                              />
-                              <p className="text-[9px] text-muted-foreground uppercase font-black">
-                                Subir archivo
-                              </p>
-                            </>
-                          )}
+              <div className="px-8 py-6 space-y-6 overflow-x-hidden">
+                {/* Imagen */}
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">
+                    Imagen Principal *
+                  </label>
+                  <div
+                    onClick={() => fileRef.current?.click()}
+                    className="relative cursor-pointer rounded-2xl border-2 border-dashed border-border hover:border-primary/50 transition-colors overflow-hidden bg-muted group"
+                    style={{ minHeight: 160 }}
+                  >
+                    {previewImg ? (
+                      <>
+                        <img
+                          src={previewImg}
+                          alt="preview"
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <p className="text-white text-xs font-bold uppercase tracking-widest">
+                            Cambiar imagen
+                          </p>
                         </div>
-                      )}
-                    </div>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-40 gap-3">
+                        {uploading ? (
+                          <Loader2
+                            size={24}
+                            className="animate-spin text-primary"
+                          />
+                        ) : (
+                          <>
+                            <ImagePlus
+                              size={28}
+                              className="text-muted-foreground/30"
+                            />
+                            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                              Clic para subir
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {uploading && previewImg && (
+                      <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+                        <Loader2
+                          size={20}
+                          className="animate-spin text-primary"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      e.target.files?.[0] &&
+                      handleImageUpload(e.target.files[0])
+                    }
+                  />
+                </div>
+
+                {/* Nombre y Precio */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Nombre *
+                    </label>
+                    <Input
+                      placeholder="Ej. Limpiador Multiusos Lavanda"
+                      value={form.name}
                       onChange={(e) =>
-                        e.target.files?.[0] &&
-                        handleImageUpload(e.target.files[0])
+                        setForm((f) => ({ ...f, name: e.target.value }))
                       }
+                      className="rounded-xl h-11"
                     />
                   </div>
-
-                  {/* Datos principales */}
-                  <div className="md:col-span-8 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          Nombre del Producto
-                        </label>
-                        <Input
-                          placeholder="Ej. Limpiador Multiusos Lavanda"
-                          value={form.name}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, name: e.target.value }))
-                          }
-                          className="rounded-xl h-12"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          Precio (PEN)
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="0.00"
-                          value={form.precio}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, precio: e.target.value }))
-                          }
-                          className="rounded-xl h-12 font-bold text-lg"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Descripción Corta
-                      </label>
-                      <Textarea
-                        placeholder="Describe las bondades del producto..."
-                        value={form.desc}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, desc: e.target.value }))
-                        }
-                        rows={3}
-                        className="rounded-xl resize-none"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <SelectField
-                        label="Categoría"
-                        value={form.categoryId}
-                        onChange={(v: string) =>
-                          setForm((f) => ({ ...f, categoryId: v }))
-                        }
-                        options={categories}
-                        placeholder="Seleccionar"
-                      />
-                      <SelectField
-                        label="Línea de Producto"
-                        value={form.lineaId}
-                        onChange={(v: string) =>
-                          setForm((f) => ({ ...f, lineaId: v }))
-                        }
-                        options={lineas}
-                        placeholder="Seleccionar"
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Precio S/ *
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={form.precio}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, precio: e.target.value }))
+                      }
+                      className="rounded-xl h-11 font-bold"
+                    />
                   </div>
                 </div>
 
-                {/* Aroma, Formato y Badges */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t border-border pt-8">
-                  <div className="grid grid-cols-2 gap-4">
-                    <SelectField
-                      label="Aroma (Opcional)"
-                      value={form.aromaId}
-                      onChange={(v: string) =>
-                        setForm((f) => ({ ...f, aromaId: v }))
-                      }
-                      options={aromas}
-                      placeholder="Ninguno"
-                    />
-                    <SelectField
-                      label="Formato"
-                      value={form.formatoId}
-                      onChange={(v: string) =>
-                        setForm((f) => ({ ...f, formatoId: v }))
-                      }
-                      options={formatos}
-                      placeholder="Ninguno"
-                    />
-                  </div>
-                  <div className="flex gap-3">
+                {/* Descripción */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Descripción
+                  </label>
+                  <Textarea
+                    placeholder="Describe las características del producto..."
+                    value={form.desc}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, desc: e.target.value }))
+                    }
+                    rows={3}
+                    className="rounded-xl resize-none"
+                  />
+                </div>
+
+                {/* Badge */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Badge{" "}
+                    <span className="text-muted-foreground/40 normal-case font-normal">
+                      (opcional)
+                    </span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
                     {[
                       {
-                        key: "biodegradable",
-                        label: "Biodegradable",
-                        color: "bg-emerald-500",
+                        value: "",
+                        label: "Sin badge",
+                        color: "bg-muted text-muted-foreground border-border",
                       },
                       {
-                        key: "concentrado",
-                        label: "Concentrado",
-                        color: "bg-blue-500",
+                        value: "Más vendido",
+                        label: "🔥 Más vendido",
+                        color:
+                          "bg-orange-500/10 text-orange-500 border-orange-500/30",
                       },
-                    ].map(({ key, label, color }) => (
+                      {
+                        value: "Nuevo",
+                        label: "✨ Nuevo",
+                        color:
+                          "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
+                      },
+                      {
+                        value: "Oferta",
+                        label: "💰 Oferta",
+                        color:
+                          "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
+                      },
+                      {
+                        value: "Premium",
+                        label: "⭐ Premium",
+                        color: "bg-primary/10 text-primary border-primary/30",
+                      },
+                      {
+                        value: "Agotado",
+                        label: "❌ Agotado",
+                        color: "bg-red-500/10 text-red-500 border-red-500/30",
+                      },
+                    ].map(({ value, label, color }) => (
                       <button
-                        key={key}
+                        key={value}
                         type="button"
-                        onClick={() =>
-                          setForm((f) => ({ ...f, [key]: !(f as any)[key] }))
-                        }
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                          (form as any)[key]
-                            ? `${color} text-white border-transparent shadow-lg`
-                            : "border-border text-muted-foreground bg-muted"
+                        onClick={() => setForm((f) => ({ ...f, badge: value }))}
+                        className={`px-4 py-2 rounded-xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                          form.badge === value
+                            ? `${color} scale-105 shadow-md`
+                            : `${color} opacity-60 hover:opacity-100`
                         }`}
                       >
-                        {(form as any)[key] && <Check size={12} />} {label}
+                        {label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Footer del modal */}
-                <div className="flex gap-4 pt-4 pb-10">
+                {/* Selects — Categoría, Línea, Aroma, Formato */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t border-border">
+                  <SelectField
+                    label="Categoría *"
+                    value={form.categoryId}
+                    onChange={(v: string) =>
+                      setForm((f) => ({ ...f, categoryId: v }))
+                    }
+                    options={categories}
+                    placeholder="Elegir"
+                  />
+                  <SelectField
+                    label="Línea *"
+                    value={form.lineaId}
+                    onChange={(v: string) =>
+                      setForm((f) => ({ ...f, lineaId: v }))
+                    }
+                    options={lineas}
+                    placeholder="Elegir"
+                  />
+                  <SelectField
+                    label="Aroma"
+                    value={form.aromaId}
+                    onChange={(v: string) =>
+                      setForm((f) => ({ ...f, aromaId: v }))
+                    }
+                    options={aromas}
+                    placeholder="Ninguno"
+                  />
+                  <SelectField
+                    label="Formato"
+                    value={form.formatoId}
+                    onChange={(v: string) =>
+                      setForm((f) => ({ ...f, formatoId: v }))
+                    }
+                    options={formatos}
+                    placeholder="Ninguno"
+                  />
+                </div>
+
+                {/* Toggles Biodegradable / Concentrado */}
+                <div className="flex gap-3">
+                  {[
+                    {
+                      key: "biodegradable",
+                      label: "Biodegradable",
+                      activeClass:
+                        "bg-emerald-500 text-white border-emerald-500",
+                    },
+                    {
+                      key: "concentrado",
+                      label: "Concentrado",
+                      activeClass: "bg-blue-500 text-white border-blue-500",
+                    },
+                  ].map(({ key, label, activeClass }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({ ...f, [key]: !(f as any)[key] }))
+                      }
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        (form as any)[key]
+                          ? `${activeClass} shadow-lg`
+                          : "border-border text-muted-foreground bg-muted hover:border-primary/30"
+                      }`}
+                    >
+                      {(form as any)[key] && <Check size={11} />}
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Botones */}
+                <div className="flex gap-3 pt-2 pb-4 border-t border-border">
                   <Button
                     onClick={handleSave}
                     disabled={saving || uploading}
-                    className="flex-1 bg-primary hover:opacity-90 text-primary-foreground rounded-2xl h-14 gap-3 text-xs font-bold uppercase tracking-widest"
+                    className="flex-1 bg-primary hover:opacity-90 text-primary-foreground rounded-xl h-12 gap-2 text-xs font-bold uppercase tracking-widest"
                   >
                     {saving ? (
-                      <Loader2 size={18} className="animate-spin" />
+                      <>
+                        <Loader2 size={15} className="animate-spin" />{" "}
+                        Guardando...
+                      </>
                     ) : (
-                      <Check size={18} />
+                      <>
+                        <Check size={15} />{" "}
+                        {editingProduct
+                          ? "Guardar cambios"
+                          : "Registrar en catálogo"}
+                      </>
                     )}
-                    {editingProduct
-                      ? "Actualizar Producto"
-                      : "Registrar en Catálogo"}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setShowForm(false)}
-                    className="rounded-2xl h-14 px-10 font-bold text-muted-foreground uppercase text-[10px] tracking-widest"
+                    className="rounded-xl h-12 px-8 font-bold text-muted-foreground uppercase text-[10px] tracking-widest border-border"
                   >
                     Cancelar
                   </Button>
