@@ -9,40 +9,30 @@ interface ReviewCardProps {
   img: string;
 }
 
-export const ReviewCard: React.FC<ReviewCardProps> = ({
-  name,
-  role,
-  text,
-  img,
-}) => (
-  <article className="px-4 shrink-0 w-[320px] md:w-[380px] group/card">
-    <div className="bg-white border-2 border-slate-100 rounded-[3rem] p-8 md:p-10 text-center  hover:shadow hover:border-terracota/30 transition-all duration-500 flex flex-col items-center h-full">
-      {/* Imagen Circular */}
-      <div className="relative w-20 h-20 rounded-full overflow-hidden mb-4 shadow-md border-4 border-crema group-hover/card:scale-110 transition-transform duration-500">
-        <Image src={img} fill className="object-cover" alt={name} />
-      </div>
-
-      <h3 className="text-negro font-black uppercase tracking-tighter text-lg mb-4">
-        {name}
-      </h3>
-
-      {/* Rating */}
-      <div className="flex items-center gap-2 mb-6">
-        <div className="flex gap-1 text-musgo">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} size={16} fill="currentColor" stroke="none" />
-          ))}
+export const ReviewCard = ({ name, role, text, img }: ReviewCardProps) => (
+  <article className="w-full mb-4">
+    <div className="bg-white border border-slate-100 rounded-3xl p-6 flex flex-col gap-3 hover:border-[#00AEEF]/30 hover:shadow-lg hover:shadow-[#00AEEF]/5 transition-all duration-500">
+      <div className="flex items-center gap-3">
+        <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100 flex-shrink-0">
+          <Image src={img} fill className="object-cover" alt={name} />
         </div>
-        <span className="font-black text-slate-400 text-sm">5.0</span>
+        <div className="min-w-0">
+          <h3 className="font-black text-slate-900 text-sm tracking-tight truncate">
+            {name}
+          </h3>
+          <p className="text-[10px] font-bold text-[#00AEEF] uppercase tracking-widest truncate">
+            {role}
+          </p>
+        </div>
       </div>
-
-      <p className="text-slate-500 text-sm md:text-base leading-relaxed font-medium italic mb-6">
+      <div className="flex gap-0.5">
+        {[...Array(5)].map((_, i) => (
+          <Star key={i} size={12} className="text-[#8CC63F]" fill="#8CC63F" />
+        ))}
+      </div>
+      <p className="text-slate-500 text-sm leading-relaxed font-medium italic">
         &ldquo;{text}&rdquo;
       </p>
-
-      <span className="text-[10px] font-black text-terracota uppercase tracking-[0.2em] mt-auto">
-        {role}
-      </span>
     </div>
   </article>
 );

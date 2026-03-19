@@ -7,6 +7,7 @@ import {
   ChevronRight,
   CheckCircle2,
 } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 // Iconos representativos para Hogar, Negocio y Empresa
@@ -94,10 +95,10 @@ export function ServicesSection() {
                 ))}
               </ul>
 
-              <button className="text-[10px] uppercase tracking-[0.2em] font-black flex items-center gap-2 text-[#00AEEF] group-hover:gap-4 transition-all">
+              <Link href="/catalogos" className="text-[10px] uppercase tracking-[0.2em] font-black flex items-center gap-2 text-[#00AEEF] group-hover:gap-4 transition-all">
                 Saber más
                 <ChevronRight size={14} />
-              </button>
+              </Link>
             </div>
           ))}
         </div>

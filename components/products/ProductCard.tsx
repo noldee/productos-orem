@@ -47,7 +47,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
       className="group bg-white rounded-[2rem] overflow-hidden border border-stone-100 hover:border-stone-200 hover:shadow-2xl hover:shadow-stone-200/60 transition-all duration-500 flex flex-col"
     >
       {/* Imagen */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-stone-50">
+      <div className="relative aspect-4/3 overflow-hidden bg-stone-50">
         <Image
           src={product.img}
           alt={product.name}

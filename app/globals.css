@@ -271,20 +271,22 @@ body::-webkit-scrollbar-thumb:hover {
     transform: translateX(-50%);
   }
 }
-@keyframes marquee-left {
-  from {
-    transform: translateX(0);
+
+@keyframes scroll-forward {
+  0% {
+    transform: translateY(0);
   }
-  to {
-    transform: translateX(-50%);
+  100% {
+    transform: translateY(-33.333%);
   }
 }
-@keyframes marquee-right {
-  from {
-    transform: translateX(-50%);
+
+@keyframes scroll-reverse {
+  0% {
+    transform: translateY(-33.333%);
   }
-  to {
-    transform: translateX(0);
+  100% {
+    transform: translateY(0);
   }
 }
 
@@ -303,21 +305,12 @@ body::-webkit-scrollbar-thumb:hover {
   }
 }
 
-.marquee-wrapper {
-  overflow: hidden;
-  display: flex;
-  width: 100%;
+.scroll-forward {
+  animation: scroll-forward var(--duration) linear infinite;
 }
-.marquee-track {
-  display: flex;
-  flex-wrap: nowrap;
-  width: max-content;
-}
-.marquee-left {
-  animation: marquee-left 40s linear infinite;
-}
-.marquee-right {
-  animation: marquee-right 40s linear infinite;
+
+.scroll-reverse {
+  animation: scroll-reverse var(--duration) linear infinite;
 }
 
 /* ============================================================
@@ -332,11 +325,15 @@ body::-webkit-scrollbar-thumb:hover {
   animation-play-state: paused;
 }
 
-.group:hover .marquee-left,
-.group:hover .marquee-right {
+.scroll-col:hover > .scroll-forward,
+.scroll-col:hover > .scroll-reverse {
   animation-play-state: paused;
 }
 
+.mobile-row:hover .animate-marquee,
+.mobile-row:hover .animate-marquee-reverse {
+  animation-play-state: paused;
+}
 /* ============================================================
    OVERRIDES — shadcn/ui Sheet
    ============================================================ */

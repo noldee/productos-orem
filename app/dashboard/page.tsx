@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart,
@@ -13,7 +13,7 @@ import {
   Cell,
 } from "recharts";
 import { Loader2, Calendar, ArrowUpRight } from "lucide-react";
-import { useTheme } from "next-themes"; // Importante para detectar el modo
+import { useTheme } from "next-themes";
 
 const monthlyData = [
   { month: "Ene", views: 4500 },
@@ -25,33 +25,40 @@ const monthlyData = [
 ];
 
 export default function DashboardPage() {
-  const [loading] = useState(false);
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
 
-  // Configuración de colores dinámica
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = resolvedTheme === "dark";
+
+  // CONFIGURACIÓN DE COLORES DINÁMICA MEJORADA
   const colors = {
     celeste: "#00aeef",
-    musgo: "#8cc63f",
-    // Color para las barras que no están seleccionadas (ajustado para modo claro)
-    barInactive: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
-    // Color de las líneas de la cuadrícula
-    grid: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
-    // Color del texto de los ejes
+    // En modo claro usamos un gris más fuerte para que no se pierda (slate-200/300)
+    barInactive: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.15)",
+    // Cuadrícula más definida en modo claro
+    grid: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.08)",
+    // Texto de ejes (slate-400 en oscuro, slate-500 en claro)
     text: isDark ? "#94a3b8" : "#64748b",
+    tooltipBg: isDark ? "#171717" : "#ffffff",
+    tooltipBorder: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
   };
 
-  if (loading)
+  if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
+  }
 
   return (
     <div className="w-full min-h-screen bg-background text-foreground p-6 md:p-12 font-sans selection:bg-primary/30 transition-colors duration-500">
       <div className="max-w-5xl mx-auto space-y-10">
-        {/* Header con estilo ORE M */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -59,7 +66,7 @@ export default function DashboardPage() {
         >
           <div>
             <div className="flex items-center gap-2 text-primary mb-2">
-              <div className="w-8 h-[2px] bg-primary"></div>
+              <div className="w-8 h-0.5 bg-primary"></div>
               <span className="text-[10px] font-bold uppercase tracking-[0.3em]">
                 Analytics Pro
               </span>
@@ -71,7 +78,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground mt-2 max-w-md">
               Visualiza el crecimiento de{" "}
               <span className="text-foreground font-medium underline decoration-primary/30">
-                M&G Catálogo
+                M&G Servicios Generales
               </span>{" "}
               a través de las interacciones mensuales.
             </p>
@@ -95,7 +102,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-card border border-border rounded-[2.5rem] p-8 relative overflow-hidden transition-all"
+          className="bg-card border border-border rounded-[2.5rem] p-8 relative overflow-hidden transition-all shadow-xl shadow-black/3"
         >
           {/* Decoración de fondo */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
@@ -104,7 +111,7 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-xl font-bold flex items-center gap-2">
                 Tráfico Mensual
-                <ArrowUpRight size={18} className="text-[#8cc63f]" />
+                <ArrowUpRight size={18} className="text-musgo" />
               </h2>
               <p className="text-sm text-muted-foreground">
                 Vistas totales por mes
@@ -112,7 +119,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="h-[400px] w-full relative z-10">
+          <div className="h-100 w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={monthlyData}
@@ -127,48 +134,30 @@ export default function DashboardPage() {
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
-                  height={60}
-                  tick={(props) => {
-                    const { x, y, payload } = props;
-                    return (
-                      <text
-                        x={x}
-                        y={y}
-                        dy={16} // Ajuste fino de posición vertical
-                        fill="var(--muted-foreground)" // Usamos tu variable del CSS
-                        fontSize={11}
-                        fontWeight={500}
-                        textAnchor="middle"
-                        className="fill-muted-foreground" // Refuerzo con Tailwind
-                      >
-                        {payload.value}
-                      </text>
-                    );
-                  }}
+                  tick={{ fill: colors.text, fontSize: 11, fontWeight: 600 }}
+                  height={50}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: colors.text, fontSize: 12 }}
+                  tick={{ fill: colors.text, fontSize: 11, fontWeight: 500 }}
                 />
                 <Tooltip
                   cursor={{
                     fill: isDark
-                      ? "rgba(255,255,255,0.03)"
-                      : "rgba(0,0,0,0.02)",
+                      ? "rgba(255,255,255,0.05)"
+                      : "rgba(0,0,0,0.04)",
                   }}
                   contentStyle={{
-                    backgroundColor: isDark ? "#171717" : "#ffffff",
-                    borderRadius: "20px",
-                    border: isDark
-                      ? "1px solid rgba(255,255,255,0.1)"
-                      : "1px solid rgba(0,0,0,0.05)",
-                    boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2)",
+                    backgroundColor: colors.tooltipBg,
+                    borderRadius: "16px",
+                    border: `1px solid ${colors.tooltipBorder}`,
+                    boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)",
                     padding: "12px 16px",
                   }}
                   itemStyle={{
                     color: colors.celeste,
-                    fontWeight: "900",
+                    fontWeight: "800",
                     fontSize: "14px",
                   }}
                   labelStyle={{
@@ -177,7 +166,7 @@ export default function DashboardPage() {
                     fontWeight: "bold",
                   }}
                 />
-                <Bar dataKey="views" radius={[12, 12, 4, 4]} barSize={55}>
+                <Bar dataKey="views" radius={[10, 10, 4, 4]} barSize={50}>
                   {monthlyData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -186,7 +175,7 @@ export default function DashboardPage() {
                           ? colors.celeste
                           : colors.barInactive
                       }
-                      className="transition-all duration-500 hover:opacity-80"
+                      className="transition-all duration-300 hover:opacity-80 cursor-pointer"
                     />
                   ))}
                 </Bar>
@@ -195,17 +184,17 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Footer con tus marcas */}
-        <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold px-2">
+        {/* Footer */}
+        <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold px-2 pb-6">
           <p className="hover:text-primary transition-colors cursor-default">
-            M&G Premium Cleaning
+            M&G Servicios Generanles
           </p>
           <div className="flex gap-6">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
               Status: Online
             </span>
-            <span>v2.0.26</span>
+            <span>v1.0.1</span>
           </div>
         </div>
       </div>

@@ -41,7 +41,11 @@ const navMain = [
 ];
 
 const navSecondary = [
-  { title: "Configuración", url: "/dashboard/configuracion", icon: IconSettings },
+  {
+    title: "Configuración",
+    url: "/dashboard/configuracion",
+    icon: IconSettings,
+  },
   { title: "Ayuda", url: "#", icon: IconHelp },
   { title: "Volver al sitio", url: "/", icon: IconArrowLeft },
 ];
@@ -59,8 +63,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <Link href="/">
-                <span className="font-serif italic text-base font-semibold">
-                  Productos<span className="text-terracota">.ORE M</span>
+                <span className="font-serif text-base font-semibold">
+                  M&G Servicios<span className="text-terracota">Generales</span>
                 </span>
               </Link>
             </SidebarMenuButton>

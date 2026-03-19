@@ -7,15 +7,17 @@ const TOKEN_KEY = "access_token";
 export const saveToken = (token: string) => {
   Cookies.set(TOKEN_KEY, token, {
     expires: 7,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: true, // siempre true cuando sameSite es "none"
+    sameSite: "none", // ← este es el cambio clave
+    path: "/",
   });
 };
 
 export const getToken = () => Cookies.get(TOKEN_KEY);
 
-export const removeToken = () => Cookies.remove(TOKEN_KEY);
-
+export const removeToken = () => {
+  Cookies.remove(TOKEN_KEY, { path: "/", sameSite: "none", secure: true });
+};
 // ── Auth ───────────────────────────────────────
 export async function login(email: string, password: string) {
   const { data } = await api.post("/auth/login", { email, password });
