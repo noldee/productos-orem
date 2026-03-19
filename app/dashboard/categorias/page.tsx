@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Pencil, Trash2, Plus, Loader2, Tag, AlignLeft } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Loader2,
+  Tag,
+  AlignLeft,
+  Layers,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -100,49 +108,58 @@ export default function CategoriasPage() {
   };
 
   return (
-    <div className="w-full space-y-8 p-4 md:p-10 bg-white min-h-screen">
-      {/* Header Estilo Premium */}
-      <div className="flex flex-col sm:row justify-between items-start sm:items-center gap-6 bg-stone-50 p-6 md:p-8 rounded-[32px] border border-stone-100">
-        <div className="flex items-center gap-5">
-          <div className="w-14 h-14 md:w-16 md:h-16 rounded-[22px] bg-stone-900 flex items-center justify-center shadow-xl shadow-stone-200 shrink-0">
-            <Tag size={28} className="text-white" />
+    <div className="w-full space-y-8 p-4 md:p-10 bg-background min-h-screen font-sans selection:bg-primary/30">
+      {/* Header Estilo Premium M&G */}
+      <div className="relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-card p-8 md:p-10 rounded-[40px] border border-border shadow-2xl">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 blur-[80px] -mr-10 -mt-10" />
+
+        <div className="flex items-center gap-6 relative z-10">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-[28px] bg-gradient-to-br from-primary to-[#008cc0] flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+            <Layers size={32} className="text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
+            <div className="flex items-center gap-2 text-primary mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em]">
+                Gestión de Inventario
+              </span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               Categorías
             </h1>
-            <p className="text-stone-500 font-medium text-sm md:text-base">
-              Gestión de catálogo ({categories.length})
+            <p className="text-muted-foreground font-medium text-sm mt-1">
+              Organiza tus productos en{" "}
+              <span className="text-foreground">{categories.length}</span>{" "}
+              secciones
             </p>
           </div>
         </div>
+
         <Button
           onClick={() => openModal()}
-          className="w-full sm:w-auto bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-14 px-8 gap-3 transition-all active:scale-95 shrink-0"
+          className="w-full sm:w-auto bg-primary hover:bg-[#008cc0] text-primary-foreground rounded-2xl h-14 px-8 gap-3 transition-all active:scale-95 shadow-xl shadow-primary/10 shrink-0 font-bold"
         >
           <Plus size={20} /> Nueva Categoría
         </Button>
       </div>
 
-      {/* Tabla con Scroll Horizontal Shadcn Style */}
-      <Card className="border border-stone-100 shadow-2xl shadow-stone-100/50 rounded-[32px] overflow-hidden bg-white">
+      {/* Tabla con Estilo Dark Card */}
+      <Card className="border border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/50 backdrop-blur-sm">
         <CardContent className="p-0">
-          {/* CONTENEDOR DE SCROLL: Esto es lo que permite el scroll como en tu imagen */}
-          <div className="relative w-full overflow-x-auto scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent">
-            <div className="min-w-[700px] w-full">
+          <div className="relative w-full overflow-x-auto custom-scrollbar">
+            <div className="min-w-[800px] w-full">
               <Table>
-                <TableHeader className="bg-stone-50/50">
-                  <TableRow className="border-stone-100 hover:bg-transparent">
-                    <TableHead className="py-6 pl-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-20">
-                      #
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="py-6 pl-10 text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em] w-24">
+                      ID
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest min-w-[200px]">
+                    <TableHead className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">
                       Nombre de Categoría
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest">
-                      Descripción
+                    <TableHead className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">
+                      Descripción Detallada
                     </TableHead>
-                    <TableHead className="text-right pr-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-32">
+                    <TableHead className="text-right pr-10 text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em] w-40">
                       Acciones
                     </TableHead>
                   </TableRow>
@@ -151,45 +168,45 @@ export default function CategoriasPage() {
                   {loading ? (
                     <TableRow>
                       <TableCell colSpan={4} className="py-32 text-center">
-                        <Loader2 className="h-10 w-10 animate-spin text-stone-300 mx-auto" />
+                        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
                       </TableCell>
                     </TableRow>
                   ) : categories.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={4}
-                        className="py-20 text-center text-stone-400 font-medium"
+                        className="py-20 text-center text-muted-foreground italic"
                       >
-                        No hay categorías disponibles.
+                        No hay categorías disponibles en este momento.
                       </TableCell>
                     </TableRow>
                   ) : (
                     categories.map((cat, i) => (
                       <TableRow
                         key={cat.id}
-                        className="group border-stone-50 hover:bg-stone-50/40 transition-colors"
+                        className="group border-border/40 hover:bg-primary/[0.03] transition-colors"
                       >
-                        <TableCell className="py-5 pl-8 font-mono text-stone-400 text-sm">
-                          {String(i + 1).padStart(2, "0")}
+                        <TableCell className="py-6 pl-10 font-mono text-muted-foreground text-xs">
+                          #{String(i + 1).padStart(2, "0")}
                         </TableCell>
-                        <TableCell className="font-bold text-stone-900">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-stone-200 group-hover:bg-stone-900 transition-colors" />
+                        <TableCell className="font-bold text-foreground">
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-border group-hover:bg-primary group-hover:scale-125 transition-all" />
                             {cat.name}
                           </div>
                         </TableCell>
-                        <TableCell className="text-stone-500">
-                          <span className="line-clamp-1 italic text-sm">
-                            {cat.description || "Sin descripción disponible"}
+                        <TableCell className="text-muted-foreground">
+                          <span className="line-clamp-1 italic text-sm opacity-70">
+                            {cat.description || "Sin descripción asignada"}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right pr-8">
-                          <div className="flex justify-end gap-2">
+                        <TableCell className="text-right pr-10">
+                          <div className="flex justify-end gap-3 transition-opacity">
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => openModal(cat)}
-                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-stone-900 hover:bg-stone-100"
+                              className="h-10 w-10 rounded-xl bg-secondary text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
                             >
                               <Pencil size={18} />
                             </Button>
@@ -198,7 +215,7 @@ export default function CategoriasPage() {
                               size="icon"
                               onClick={() => remove(cat.id)}
                               disabled={deletingId === cat.id}
-                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50"
+                              className="h-10 w-10 rounded-xl bg-secondary text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                             >
                               {deletingId === cat.id ? (
                                 <Loader2 size={18} className="animate-spin" />
@@ -218,57 +235,60 @@ export default function CategoriasPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Re-diseñado */}
+      {/* Modal Re-diseñado con tu Paleta Dark */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-[450px] rounded-[32px] border-none p-0 overflow-hidden shadow-2xl">
-          <div className="bg-stone-900 p-8 text-white">
-            <DialogTitle className="text-2xl font-bold">
-              {editingCategory ? "Editar Categoría" : "Nueva Categoría"}
+        <DialogContent className="sm:max-w-[480px] rounded-[40px] border-border bg-card p-0 overflow-hidden ">
+          <div className="bg-gradient-to-r from-primary to-[#008cc0] p-10 text-primary-foreground relative">
+            <div className="absolute top-0 right-0 p-8 opacity-20">
+              <Layers size={60} />
+            </div>
+            <DialogTitle className="text-3xl font-bold relative z-10">
+              {editingCategory ? "Editar" : "Crear"}
             </DialogTitle>
-            <DialogDescription className="text-stone-400 mt-1">
-              Completa los campos para organizar tu catálogo.
+            <DialogDescription className="text-primary-foreground/80 mt-2 font-medium relative z-10">
+              Configura los detalles de la categoría.
             </DialogDescription>
           </div>
 
-          <div className="p-8 space-y-6 bg-white">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 flex items-center gap-2">
-                <Tag size={12} /> Nombre de Categoría
+          <div className="p-10 space-y-8 bg-card">
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                <Tag size={12} /> Nombre oficial
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ej. Detergentes Industriales"
-                className="h-12 rounded-xl border-stone-200 focus:ring-stone-900 focus:border-stone-900"
+                placeholder="Ej. Limpieza Industrial"
+                className="h-14 rounded-2xl bg-background border-border focus:ring-primary focus:border-primary text-foreground placeholder:text-muted-foreground/50"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 flex items-center gap-2">
-                <AlignLeft size={12} /> Descripción
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                <AlignLeft size={12} /> Breve descripción
               </label>
               <Input
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
                 placeholder="Opcional..."
-                className="h-12 rounded-xl border-stone-200 focus:ring-stone-900 focus:border-stone-900"
+                className="h-14 rounded-2xl bg-background border-border focus:ring-primary focus:border-primary text-foreground"
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-4 pt-4">
               <Button
                 variant="outline"
                 onClick={() => setShowModal(false)}
-                className="flex-1 h-12 rounded-xl border-stone-200 font-bold text-stone-600 hover:bg-stone-50"
+                className="flex-1 h-14 rounded-2xl border-border bg-transparent font-bold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
               >
-                Cancelar
+                Cerrar
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || !name.trim()}
-                className="flex-1 h-12 rounded-xl bg-stone-900 text-white font-bold hover:bg-stone-800 transition-all shadow-lg shadow-stone-200"
+                className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-bold hover:bg-[#008cc0] transition-all shadow-lg shadow-primary/20"
               >
-                {saving ? <Loader2 className="animate-spin" /> : "Guardar"}
+                {saving ? <Loader2 className="animate-spin" /> : "Confirmar"}
               </Button>
             </div>
           </div>

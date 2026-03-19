@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Pencil, Trash2, Plus, Loader2, Layers, Eye, Info } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Loader2,
+  Layers,
+  Eye,
+  Info,
+  X,
+} from "lucide-react";
 
 import {
   Table,
@@ -34,7 +43,7 @@ export default function LineasPage() {
   const [loading, setLoading] = useState(true);
 
   // Modales
-  const [showModal, setShowModal] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
 
   // Estados de datos
@@ -70,7 +79,7 @@ export default function LineasPage() {
       setName("");
       setDesc("");
     }
-    setShowModal(true);
+    setShowFormModal(true);
   };
 
   const openView = (linea: Linea) => {
@@ -88,7 +97,7 @@ export default function LineasPage() {
       } else {
         await api.post("/lineas", payload);
       }
-      setShowModal(false);
+      setShowFormModal(false);
       fetchLineas();
     } finally {
       setSaving(false);
@@ -107,97 +116,93 @@ export default function LineasPage() {
   };
 
   return (
-    <div className="w-full space-y-8 p-4 md:p-10 bg-white min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-stone-50 p-6 md:p-8 rounded-[32px] border border-stone-100 shadow-sm">
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-[22px] bg-stone-900 flex items-center justify-center shadow-xl shadow-stone-200">
-            <Layers size={28} className="text-white" />
+    <div className="w-full space-y-6 p-4 md:p-8 bg-background min-h-screen selection:bg-primary/20">
+      {/* HEADER COMPACTO PREMIUM */}
+      <div className="relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-6 rounded-[28px] border border-border">
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center  shrink-0">
+            <Layers size={26} className="text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-stone-900">
-              Líneas
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Líneas <span className="text-primary">Pro</span>
             </h1>
-            <p className="text-stone-500 font-medium">
-              {lineas.length} registros encontrados
+            <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em]">
+              {lineas.length} registros
             </p>
           </div>
         </div>
+
         <Button
           onClick={() => openForm()}
-          className="w-full md:w-auto bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-14 px-8 gap-3"
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 px-6 gap-2 shadow-lg shadow-primary/10 font-bold transition-all active:scale-95"
         >
-          <Plus size={20} /> Nueva Línea
+          <Plus size={18} /> Nueva Línea
         </Button>
       </div>
 
-      {/* Tabla Principal */}
-      <Card className="border-none shadow-2xl shadow-stone-100 rounded-[32px] overflow-hidden bg-white">
+      {/* TABLA REFINADA */}
+      <Card className="border-border rounded-[28px] overflow-hidden bg-card/40 backdrop-blur-sm">
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex flex-col justify-center items-center py-32 gap-4">
-              <Loader2 className="h-10 w-10 animate-spin text-stone-200" />
-              <p className="text-stone-400 text-sm font-medium">
-                Cargando datos...
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+            <div className="min-w-[800px]">
               <Table>
-                <TableHeader className="bg-stone-50/50">
-                  <TableRow className="border-stone-100">
-                    <TableHead className="py-6 pl-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-16">
-                      #
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="border-border/40 hover:bg-transparent">
+                    <TableHead className="py-4 pl-8 text-primary font-bold text-[10px] tracking-[0.2em] w-20">
+                      ORDEN
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest min-w-[200px]">
-                      Nombre
+                    <TableHead className="text-muted-foreground font-bold text-[10px] tracking-[0.2em]">
+                      NOMBRE
                     </TableHead>
-                    <TableHead className="text-stone-400 font-bold uppercase text-[10px] tracking-widest hidden md:table-cell">
-                      Descripción
+                    <TableHead className="text-muted-foreground font-bold text-[10px] tracking-[0.2em]">
+                      DETALLES
                     </TableHead>
-                    <TableHead className="text-right pr-8 text-stone-400 font-bold uppercase text-[10px] tracking-widest w-40">
-                      Acciones
+                    <TableHead className="text-right pr-8 text-muted-foreground font-bold text-[10px] tracking-[0.2em] w-48">
+                      ACCIONES
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lineas.length === 0 ? (
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="py-24 text-center">
+                        <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary/50" />
+                      </TableCell>
+                    </TableRow>
+                  ) : lineas.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={4}
-                        className="h-48 text-center text-stone-400 italic"
+                        className="py-24 text-center text-muted-foreground italic"
                       >
-                        No hay líneas registradas aún.
+                        No hay líneas registradas.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    // EL CAMBIO ESTÁ AQUÍ: Usamos "i" para la numeración
                     lineas.map((linea, i) => (
                       <TableRow
                         key={linea.id}
-                        className="border-stone-50 group hover:bg-stone-50/30 transition-colors"
+                        className="border-border/10 group hover:bg-primary/[0.02] transition-colors"
                       >
-                        <TableCell className="py-5 pl-8 font-mono text-stone-400 text-xs">
-                          {/* Esto garantiza orden del 1 al N */}
+                        <TableCell className="py-4 pl-8 font-mono text-primary/60 text-xs">
                           {String(i + 1).padStart(2, "0")}
                         </TableCell>
-                        <TableCell className="font-bold text-stone-800">
-                          <span className="truncate block max-w-[250px]">
-                            {linea.name}
-                          </span>
+                        <TableCell className="font-bold text-foreground">
+                          {linea.name}
                         </TableCell>
-                        <TableCell className="text-stone-500 hidden md:table-cell">
-                          <p className="line-clamp-1 italic max-w-[400px] text-sm">
-                            {linea.description || "—"}
-                          </p>
+                        <TableCell className="text-muted-foreground/50 italic text-xs max-w-[300px] truncate">
+                          {linea.description || "— Sin descripción —"}
                         </TableCell>
+
+                        {/* ACCIONES FIJAS */}
                         <TableCell className="text-right pr-8">
-                          <div className="flex justify-end gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex justify-end gap-2">
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => openView(linea)}
-                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-blue-600 hover:bg-blue-50"
+                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-primary border border-border/50 transition-all hover:scale-110"
                             >
                               <Eye size={16} />
                             </Button>
@@ -205,7 +210,7 @@ export default function LineasPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => openForm(linea)}
-                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-stone-900 hover:bg-stone-100"
+                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-green-400 border border-border/50 transition-all hover:scale-110"
                             >
                               <Pencil size={16} />
                             </Button>
@@ -214,7 +219,7 @@ export default function LineasPage() {
                               size="icon"
                               onClick={() => remove(linea.id)}
                               disabled={deletingId === linea.id}
-                              className="h-9 w-9 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50"
+                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-destructive border border-border/50 transition-all hover:scale-110"
                             >
                               {deletingId === linea.id ? (
                                 <Loader2 size={16} className="animate-spin" />
@@ -230,51 +235,56 @@ export default function LineasPage() {
                 </TableBody>
               </Table>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* DIALOG: CREAR / EDITAR */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-[450px] rounded-[32px] border-none p-0 overflow-hidden shadow-2xl">
-          <div className="bg-stone-900 p-8 text-white">
-            <DialogTitle className="text-2xl font-bold">
+      {/* MODAL: FORMULARIO (CREAR/EDITAR) */}
+      <Dialog open={showFormModal} onOpenChange={setShowFormModal}>
+        <DialogContent className="sm:max-w-[440px] rounded-[32px] border-border bg-card p-0 overflow-hidden">
+          <div className="bg-gradient-to-r from-primary/20 to-transparent p-8 border-b border-border">
+            <DialogTitle className="text-2xl font-bold text-foreground">
               {selectedLinea ? "Editar Línea" : "Nueva Línea"}
             </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs mt-1 uppercase tracking-widest font-bold">
+              Completa los datos de la familia
+            </DialogDescription>
           </div>
-          <div className="p-8 space-y-6 bg-white">
+          <div className="p-8 space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                Nombre
+              <label className="text-[10px] font-bold uppercase tracking-widest text-primary ml-1">
+                Nombre Comercial
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="h-12 rounded-xl"
+                placeholder="Ej. Línea Industrial"
+                className="h-12 rounded-xl bg-background border-border focus:ring-primary focus:border-primary px-4"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                Descripción
+              <label className="text-[10px] font-bold uppercase tracking-widest text-primary ml-1">
+                Descripción corta
               </label>
               <Input
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                className="h-12 rounded-xl"
+                placeholder="Opcional..."
+                className="h-12 rounded-xl bg-background border-border focus:ring-primary focus:border-primary px-4"
               />
             </div>
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-2">
               <Button
                 variant="outline"
-                onClick={() => setShowModal(false)}
-                className="flex-1 h-12 rounded-xl"
+                onClick={() => setShowFormModal(false)}
+                className="flex-1 h-12 rounded-xl border-border hover:bg-secondary font-bold"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={saving}
-                className="flex-1 h-12 rounded-xl bg-stone-900 text-white font-bold"
+                disabled={saving || !name.trim()}
+                className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
               >
                 {saving ? <Loader2 className="animate-spin" /> : "Guardar"}
               </Button>
@@ -283,49 +293,45 @@ export default function LineasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* DIALOG: VISTA DETALLADA (SOLO LECTURA) */}
+      {/* MODAL: VER DETALLE */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent className="sm:max-w-[500px] rounded-[32px] border-none p-0 overflow-hidden shadow-2xl bg-stone-50">
-          {/* Agregamos DialogHeader y DialogTitle aquí */}
-          <DialogHeader className="sr-only">
-            <DialogTitle>Detalle de la Línea</DialogTitle>
+        <DialogContent className="sm:max-w-[460px] rounded-[32px] border-border bg-card p-8 shadow-2xl">
+          <DialogHeader className="flex flex-row items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+              <Info size={24} />
+            </div>
+            <div className="text-left">
+              <DialogTitle className="text-2xl font-bold">
+                Detalle de Línea
+              </DialogTitle>
+              <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Información del sistema
+              </DialogDescription>
+            </div>
           </DialogHeader>
 
-          <div className="p-8 space-y-6">
-            <div className="flex items-center gap-4 text-stone-900">
-              <div className="p-3 bg-white rounded-2xl shadow-sm border border-stone-100">
-                <Info size={24} className="text-stone-900" />
-              </div>
-              {/* Cambiamos el h2 por DialogTitle si quieres que sea el título oficial, 
-            o lo dejamos así si ya pusimos el SR-ONLY arriba */}
-              <h2 className="text-2xl font-bold">Detalle de la Línea</h2>
+          <div className="space-y-4">
+            <div className="p-6 rounded-2xl bg-background/50 border border-border">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+                Nombre
+              </p>
+              <p className="text-xl font-bold text-foreground mb-4">
+                {selectedLinea?.name}
+              </p>
+              <div className="h-px w-full bg-border/40 mb-4" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">
+                Descripción
+              </p>
+              <p className="text-muted-foreground italic text-sm leading-relaxed">
+                {selectedLinea?.description ||
+                  "No se ha proporcionado una descripción detallada para esta línea."}
+              </p>
             </div>
-
-            <div className="bg-white p-6 rounded-[24px] border border-stone-100 space-y-4 shadow-sm">
-              <div>
-                <p className="text-[10px] font-bold uppercase text-stone-400 mb-1">
-                  Nombre Comercial
-                </p>
-                <p className="text-lg font-semibold text-stone-900">
-                  {selectedLinea?.name}
-                </p>
-              </div>
-              <div className="pt-4 border-t border-stone-50">
-                <p className="text-[10px] font-bold uppercase text-stone-400 mb-1">
-                  Descripción Completa
-                </p>
-                <p className="text-stone-600 leading-relaxed italic">
-                  {selectedLinea?.description ||
-                    "No tiene una descripción registrada."}
-                </p>
-              </div>
-            </div>
-
             <Button
               onClick={() => setShowViewModal(false)}
-              className="w-full h-12 rounded-xl bg-stone-900 text-white font-bold"
+              className="w-full h-12 rounded-xl bg-secondary text-foreground hover:bg-border font-bold"
             >
-              Cerrar
+              Entendido
             </Button>
           </div>
         </DialogContent>

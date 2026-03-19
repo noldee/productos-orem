@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import queryString from "query-string";
 import {
   ShoppingCart,
   ArrowRight,
@@ -57,8 +56,16 @@ export function CartSheet() {
       <SheetContent
         side="right"
         onOpenAutoFocus={(e) => e.preventDefault()}
-        className="z-[100] !w-[90vw] !max-w-[420px] border-none p-0 flex flex-col h-svh bg-white shadow-2xl rounded-l-2xl overflow-hidden"
-        style={{ animation: "none" }}
+        className="z-[100] !w-[90vw] !max-w-[420px] border-none p-0 flex flex-col bg-white shadow-2xl rounded-l-2xl overflow-hidden"
+        // ── FIX altura mobile ──
+        // h-screen como fallback, h-[100dvh] para iOS Safari y Android Chrome
+        // dvh descuenta la barra del navegador correctamente en ambos
+        style={{
+          animation: "none",
+          height:
+            "100dvh" /* dynamic viewport height — soporte iOS 15.4+ / Android Chrome 108+ */,
+          maxHeight: "100dvh",
+        }}
       >
         {/* ── HEADER ── */}
         <SheetHeader className="px-6 pt-10 pb-5 flex-none bg-white border-b border-stone-100">
@@ -99,7 +106,7 @@ export function CartSheet() {
           </div>
         </SheetHeader>
 
-        {/* ── CONTENEDOR DE LISTA DE PRODUCTOS ── */}
+        {/* ── LISTA DE PRODUCTOS — flex-1 + min-h-0 para que el scroll funcione ── */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-6 custom-scrollbar min-h-0">
           <AnimatePresence mode="popLayout" initial={false}>
             {cartItems.length > 0 ? (
@@ -108,7 +115,7 @@ export function CartSheet() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="space-y-4 pr-2" /* pr-2 evita que el scroll choque con los productos */
+                className="space-y-4 py-4 pr-2"
               >
                 {cartItems.map((item) => (
                   <motion.div
@@ -118,9 +125,9 @@ export function CartSheet() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20, scale: 0.95 }}
                     transition={{ duration: 0.25 }}
-                    className="flex gap-4 items-center bg-stone-50 rounded-2xl p-3 border border-stone-100 shadow-sm" 
+                    className="flex gap-4 items-center bg-stone-50 rounded-2xl p-3 border border-stone-100 shadow-sm"
                   >
-                    {/* Imagen del Producto */}
+                    {/* Imagen */}
                     <div className="relative w-24 h-24 flex-none rounded-xl overflow-hidden bg-white border border-stone-100 shadow-inner">
                       <Image
                         src={item.img}
@@ -132,7 +139,7 @@ export function CartSheet() {
                       />
                     </div>
 
-                    {/* Información y Controles */}
+                    {/* Info y controles */}
                     <div className="flex-1 flex flex-col justify-between min-w-0 h-24">
                       <div className="flex justify-between items-start gap-2">
                         <div className="min-w-0">
@@ -154,7 +161,7 @@ export function CartSheet() {
                         </button>
                       </div>
 
-                      {/* Selector de Cantidad y Precio */}
+                      {/* Cantidad y precio */}
                       <div className="flex justify-between items-center mt-auto">
                         <div className="flex items-center border border-stone-200 rounded-full px-3 py-1 gap-4 bg-white shadow-sm">
                           <button
@@ -182,13 +189,13 @@ export function CartSheet() {
                 ))}
               </motion.div>
             ) : (
-              /* Estado Vacío (Centrado automáticamente por el contenedor padre) */
+              /* Estado vacío */
               <motion.div
                 key="empty-state"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="flex flex-col items-center justify-center text-center space-y-5"
+                className="flex flex-col items-center justify-center text-center space-y-5 h-full py-20"
               >
                 <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center">
                   <ShoppingBag
@@ -221,8 +228,9 @@ export function CartSheet() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 20, opacity: 0 }}
               transition={{ duration: 0.3 }}
+              className="flex-none"
             >
-              <SheetFooter className="px-6 pt-5 pb-8 bg-white border-t border-stone-100 flex-none flex-col gap-5">
+              <SheetFooter className="px-6 pt-5 pb-8 bg-white border-t border-stone-100 flex-col gap-5">
                 {/* Resumen */}
                 <div className="w-full space-y-3">
                   <div className="flex justify-between text-[11px] uppercase tracking-widest text-stone-500 font-bold">
@@ -244,6 +252,7 @@ export function CartSheet() {
                     </span>
                   </div>
                 </div>
+
                 {/* Total */}
                 <div className="flex justify-between items-end border-t border-stone-100 pt-4">
                   <span className="font-serif text-[2.2rem] italic text-black leading-none">
@@ -258,6 +267,7 @@ export function CartSheet() {
                     </p>
                   </div>
                 </div>
+
                 <button
                   onClick={() =>
                     sendOrderToWhatsApp({

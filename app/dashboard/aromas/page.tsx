@@ -2,16 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import {
-  Pencil,
-  Trash2,
-  Plus,
-  Check,
-  X,
-  Loader2,
-  Wind,
-  Eye,
-} from "lucide-react";
+import { Pencil, Trash2, Plus, Loader2, Wind, Eye, Info } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -41,21 +31,23 @@ interface Aroma {
 export default function AromasPage() {
   const [aromas, setAromas] = useState<Aroma[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newName, setNewName] = useState("");
-  const [newDesc, setNewDesc] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDesc, setEditDesc] = useState("");
+
+  // Modales
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+
+  // Datos
+  const [selectedAroma, setSelectedAroma] = useState<Aroma | null>(null);
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // Estado para el modal de vista
-  const [viewingAroma, setViewingAroma] = useState<Aroma | null>(null);
-
   const fetchAromas = async () => {
+    setLoading(true);
     try {
       const { data } = await api.get("/aromas");
-      setAromas(data);
+      setAromas(Array.isArray(data) ? data : data?.data || []);
     } finally {
       setLoading(false);
     }
@@ -65,40 +57,47 @@ export default function AromasPage() {
     fetchAromas();
   }, []);
 
-  const create = async () => {
-    if (!newName.trim()) return;
-    await api.post("/aromas", { name: newName, description: newDesc || null });
-    setNewName("");
-    setNewDesc("");
-    setCreating(false);
-    fetchAromas();
+  const openForm = (aroma?: Aroma) => {
+    if (aroma) {
+      setSelectedAroma(aroma);
+      setName(aroma.name);
+      setDesc(aroma.description ?? "");
+    } else {
+      setSelectedAroma(null);
+      setName("");
+      setDesc("");
+    }
+    setShowFormModal(true);
   };
 
-  const update = async (id: number) => {
-    const payload: any = {
-      name: editName.trim(),
-      description: editDesc || null,
-    };
+  const openView = (aroma: Aroma) => {
+    setSelectedAroma(aroma);
+    setShowViewModal(true);
+  };
 
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
     try {
-      await api.put(`/aromas/${id}`, payload);
-      setEditingId(null);
+      const payload = { name, description: desc || null };
+      if (selectedAroma) {
+        await api.put(`/aromas/${selectedAroma.id}`, payload);
+      } else {
+        await api.post("/aromas", payload);
+      }
+      setShowFormModal(false);
       fetchAromas();
     } catch (e: any) {
       if (e.response?.data?.message?.includes("Unique")) {
         alert("Ya existe un aroma con ese nombre");
       }
+    } finally {
+      setSaving(false);
     }
   };
 
-  const startEdit = (a: Aroma) => {
-    setEditingId(a.id);
-    setEditName(a.name);
-    setEditDesc(a.description ?? "");
-  };
-
   const remove = async (id: number) => {
-    if (!confirm("¿Eliminar este aroma?")) return;
+    if (!confirm("¿Deseas eliminar este aroma?")) return;
     setDeletingId(id);
     try {
       await api.delete(`/aromas/${id}`);
@@ -109,275 +108,221 @@ export default function AromasPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full space-y-8 p-6 md:p-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-2">
-        <div className="flex items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-stone-900 flex items-center justify-center shadow-lg shadow-stone-200">
-            <Wind size={26} className="text-white" />
+    <div className="w-full space-y-6 p-4 md:p-8 bg-background min-h-screen">
+      {/* HEADER: Siguiendo la línea "Pro" */}
+      <div className="relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-6 rounded-[28px] border border-border">
+        <div className="flex items-center gap-4 z-10">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+            <Wind size={26} className="text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-stone-900">
-              Colección de Aromas
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Aromas <span className="text-primary">Pro</span>
             </h1>
-            <p className="text-stone-500 font-medium">
-              {aromas.length}{" "}
-              {aromas.length === 1
-                ? "esencia disponible"
-                : "esencias disponibles"}
+            <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em]">
+              {aromas.length} fragancias
             </p>
           </div>
         </div>
+
         <Button
-          onClick={() => {
-            setCreating(true);
-            setEditingId(null);
-          }}
-          disabled={creating}
-          className="bg-stone-900 hover:bg-stone-800 text-white rounded-full px-8 py-6 h-auto gap-2 shadow-md transition-all hover:scale-105 active:scale-95"
+          onClick={() => openForm()}
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 px-8 gap-2 font-bold active:scale-95"
         >
-          <Plus size={18} /> Nuevo aroma
+          <Plus size={18} /> Nuevo Aroma
         </Button>
       </div>
 
-      {/* Formulario Creación */}
-      <AnimatePresence>
-        {creating && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card className="border-2 border-stone-100 shadow-sm bg-stone-50/40 rounded-3xl">
-              <CardContent className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                  <div className="md:col-span-4 space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-stone-500 ml-1">
-                      Nombre del Aroma
-                    </label>
-                    <Input
-                      autoFocus
-                      placeholder="Ej: Sándalo Real"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      className="rounded-2xl border-stone-200 bg-white h-12 focus:ring-2 focus:ring-stone-900/5"
-                    />
-                  </div>
-                  <div className="md:col-span-5 space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-stone-500 ml-1">
-                      Descripción Detallada
-                    </label>
-                    <Input
-                      placeholder="Notas olfativas, origen..."
-                      value={newDesc}
-                      onChange={(e) => setNewDesc(e.target.value)}
-                      className="rounded-2xl border-stone-200 bg-white h-12 focus:ring-2 focus:ring-stone-900/5"
-                    />
-                  </div>
-                  <div className="md:col-span-3 flex gap-3">
-                    <Button
-                      onClick={create}
-                      className="flex-1 bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-12"
-                    >
-                      Guardar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setCreating(false)}
-                      className="rounded-2xl h-12 px-6 hover:bg-stone-200"
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tabla */}
-      <Card className="border-none shadow-xl shadow-stone-200/50 rounded-3xl overflow-hidden bg-white">
+      {/* TABLA: Acciones fijas y Scroll refinado */}
+      <Card className="border-border  rounded-[28px] overflow-hidden bg-card/40 backdrop-blur-sm">
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex flex-col justify-center items-center py-32 gap-4">
-              <Loader2 className="h-10 w-10 animate-spin text-stone-200" />
-              <p className="text-stone-400 font-medium">Cargando catálogo...</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-stone-50/50 hover:bg-stone-50/50 border-stone-100">
-                  <TableHead className="w-[80px] pl-8 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
-                    ID
-                  </TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
-                    Aroma
-                  </TableHead>
-                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
-                    Descripción
-                  </TableHead>
-                  <TableHead className="text-right pr-8 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
-                    Acciones
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {aromas.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-64 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Wind className="h-12 w-12 text-stone-100" />
-                        <p className="text-stone-400 text-lg font-medium">
-                          No hay aromas registrados
-                        </p>
-                      </div>
-                    </TableCell>
+          <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+            <div className="min-w-[800px]">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="border-border/40 hover:bg-transparent">
+                    <TableHead className="py-4 pl-8 text-primary font-bold text-[10px] tracking-[0.2em] w-20">
+                      ID
+                    </TableHead>
+                    <TableHead className="text-muted-foreground font-bold text-[10px] tracking-[0.2em]">
+                      FRAGANCIA
+                    </TableHead>
+                    <TableHead className="text-muted-foreground font-bold text-[10px] tracking-[0.2em]">
+                      NOTAS OLFATIVAS
+                    </TableHead>
+                    <TableHead className="text-right pr-8 text-muted-foreground font-bold text-[10px] tracking-[0.2em] w-48">
+                      ACCIONES
+                    </TableHead>
                   </TableRow>
-                ) : (
-                  aromas.map((aroma, i) => (
-                    <TableRow
-                      key={aroma.id}
-                      className="group border-stone-50 hover:bg-stone-50/40 transition-all"
-                    >
-                      {editingId === aroma.id ? (
-                        <>
-                          <TableCell className="pl-8 font-mono text-stone-300">
-                            {i + 1}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              className="h-9 rounded-lg"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={editDesc}
-                              onChange={(e) => setEditDesc(e.target.value)}
-                              className="h-9 rounded-lg"
-                            />
-                          </TableCell>
-                          <TableCell className="text-right pr-8">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => update(aroma.id)}
-                                className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-8 p-0"
-                              >
-                                <Check size={14} />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setEditingId(null)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <X size={14} />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell className="pl-8 text-stone-300 font-mono text-xs italic">
-                            {String(i + 1).padStart(2, "0")}
-                          </TableCell>
-                          <TableCell className="font-semibold text-stone-800 py-5">
-                            {aroma.name}
-                          </TableCell>
-                          <TableCell className="max-w-[300px]">
-                            <p className="text-stone-500 text-sm truncate pr-10">
-                              {aroma.description || "—"}
-                            </p>
-                          </TableCell>
-                          <TableCell className="text-right pr-8">
-                            <div className="flex justify-end gap-1  transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setViewingAroma(aroma)}
-                                className="h-9 w-9 rounded-xl text-stone-800 hover:text-blue-600 hover:bg-blue-50"
-                              >
-                                <Eye size={16} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => startEdit(aroma)}
-                                className="h-9 w-9 rounded-xl text-stone-400 hover:text-stone-900 hover:bg-stone-100"
-                              >
-                                <Pencil size={16} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => remove(aroma.id)}
-                                disabled={deletingId === aroma.id}
-                                className="h-9 w-9 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50"
-                              >
-                                {deletingId === aroma.id ? (
-                                  <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                  <Trash2 size={16} />
-                                )}
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </>
-                      )}
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="py-24 text-center">
+                        <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary/50" />
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
+                  ) : aromas.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="py-24 text-center text-muted-foreground italic"
+                      >
+                        No hay aromas en la colección.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    aromas.map((aroma, i) => (
+                      <TableRow
+                        key={aroma.id}
+                        className="border-border/10 group hover:bg-primary/[0.02] transition-colors"
+                      >
+                        <TableCell className="py-4 pl-8 font-mono text-primary/60 text-xs italic">
+                          {String(i + 1).padStart(2, "0")}
+                        </TableCell>
+                        <TableCell className="font-bold text-foreground">
+                          {aroma.name}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground/50 italic text-xs max-w-[300px] truncate">
+                          {aroma.description || "— Sin descripción —"}
+                        </TableCell>
+
+                        {/* ACCIONES FIJAS (Sin hover delay) */}
+                        <TableCell className="text-right pr-8">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openView(aroma)}
+                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-primary border border-border/50 hover:scale-110"
+                            >
+                              <Eye size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openForm(aroma)}
+                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-green-400 border border-border/50 hover:scale-110"
+                            >
+                              <Pencil size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => remove(aroma.id)}
+                              disabled={deletingId === aroma.id}
+                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-destructive border border-border/50 hover:scale-110"
+                            >
+                              {deletingId === aroma.id ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Modal de Vista Detallada */}
-      <Dialog
-        open={!!viewingAroma}
-        onOpenChange={(open) => !open && setViewingAroma(null)}
-      >
-        <DialogContent className="sm:max-w-md rounded-3xl border-none shadow-2xl">
-          <DialogHeader className="space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-stone-100 flex items-center justify-center text-stone-900">
+      {/* MODAL: FORMULARIO */}
+      <Dialog open={showFormModal} onOpenChange={setShowFormModal}>
+        <DialogContent className="sm:max-w-[440px] rounded-[32px] border-border bg-card p-0 overflow-hidden">
+          <div className="bg-gradient-to-r from-primary/20 to-transparent p-8 border-b border-border">
+            <DialogTitle className="text-2xl font-bold">
+              {selectedAroma ? "Editar Aroma" : "Nuevo Aroma"}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-[10px] mt-1 uppercase tracking-widest font-bold">
+              Define la esencia del producto
+            </DialogDescription>
+          </div>
+          <div className="p-8 space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-primary ml-1">
+                Nombre de Fragancia
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ej. Lavanda Silvestre"
+                className="h-12 rounded-xl bg-background border-border"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-primary ml-1">
+                Descripción / Notas
+              </label>
+              <Input
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Ej. Notas cítricas y frescas..."
+                className="h-12 rounded-xl bg-background border-border"
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowFormModal(false)}
+                className="flex-1 h-12 rounded-xl font-bold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving || !name.trim()}
+                className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold"
+              >
+                {saving ? <Loader2 className="animate-spin" /> : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: VISTA */}
+      <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
+        <DialogContent className="sm:max-w-[460px] rounded-[32px] border-border bg-card p-8">
+          <DialogHeader className="flex flex-row items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
               <Wind size={24} />
             </div>
-            <DialogTitle className="text-2xl font-bold text-stone-900">
-              Detalles del Aroma
-            </DialogTitle>
+            <div className="text-left">
+              <DialogTitle className="text-2xl font-bold">
+                Perfil del Aroma
+              </DialogTitle>
+              <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Catálogo Maestro
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                Nombre Comercial
-              </span>
-              <p className="text-lg font-medium text-stone-800">
-                {viewingAroma?.name}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                Descripción Completa
-              </span>
-              <p className="text-stone-600 leading-relaxed bg-stone-50 p-4 rounded-2xl border border-stone-100">
-                {viewingAroma?.description ||
-                  "Este aroma no tiene una descripción registrada actualmente."}
-              </p>
-            </div>
+          <div className="p-6 rounded-2xl bg-background/50 border border-border mb-6">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
+              Fragancia
+            </p>
+            <p className="text-xl font-bold text-foreground mb-4">
+              {selectedAroma?.name}
+            </p>
+            <div className="h-px w-full bg-border/40 mb-4" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
+              Notas Olfativas
+            </p>
+            <p className="text-muted-foreground italic text-sm">
+              {selectedAroma?.description ||
+                "No hay notas específicas para esta esencia."}
+            </p>
           </div>
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setViewingAroma(null)}
-              className="bg-stone-900 text-white rounded-xl px-6"
-            >
-              Entendido
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowViewModal(false)}
+            className="w-full h-12 rounded-xl bg-secondary text-foreground hover:bg-border font-bold"
+          >
+            Cerrar Vista
+          </Button>
         </DialogContent>
       </Dialog>
     </div>

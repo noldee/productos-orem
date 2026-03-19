@@ -193,6 +193,7 @@ export default function ProductosPage() {
     fetchAll();
   };
 
+  // ── SelectField con tokens semánticos ──
   const SelectField = ({
     label,
     value,
@@ -201,14 +202,14 @@ export default function ProductosPage() {
     placeholder,
   }: any) => (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 focus:outline-none focus:border-stone-400 pr-8 h-11"
+          className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:border-ring pr-8 h-11 transition-colors"
         >
           <option value="">{placeholder}</option>
           {options.map((o: any) => (
@@ -219,7 +220,7 @@ export default function ProductosPage() {
         </select>
         <ChevronDown
           size={14}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
         />
       </div>
     </div>
@@ -227,76 +228,76 @@ export default function ProductosPage() {
 
   return (
     <div className="w-full space-y-6 p-4 md:p-8 max-w-[1600px] mx-auto overflow-hidden">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-stone-100">
+      {/* ── Header ── */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-border">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-stone-900 flex items-center justify-center shadow-lg shadow-stone-200">
-            <ShoppingBag size={22} className="text-white" />
+          <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+            <ShoppingBag size={22} className="text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Productos
             </h1>
-            <p className="text-sm text-stone-400">
+            <p className="text-sm text-muted-foreground">
               {products.length} artículos en tu catálogo
             </p>
           </div>
         </div>
         <Button
           onClick={openCreate}
-          className="bg-stone-900 hover:bg-stone-800 text-white rounded-full px-6 h-11 gap-2 text-xs font-bold uppercase tracking-widest transition-all hover:shadow-lg active:scale-95"
+          className="bg-primary hover:opacity-90 text-primary-foreground rounded-full px-6 h-11 gap-2 text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
         >
           <Plus size={16} /> Nuevo producto
         </Button>
       </div>
 
-      {/* Tabla con Scroll Horizontal Controlado */}
-      <Card className="border border-stone-100 shadow-sm rounded-3xl overflow-hidden">
+      {/* ── Tabla ── */}
+      <Card className="border border-border shadow-sm rounded-3xl overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col justify-center items-center py-32 gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-stone-900" />
-              <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Cargando catálogo...
               </p>
             </div>
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center px-8">
-              <div className="w-16 h-16 rounded-3xl bg-stone-50 flex items-center justify-center mb-4">
-                <ShoppingBag size={28} className="text-stone-200" />
+              <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center mb-4">
+                <ShoppingBag size={28} className="text-muted-foreground/30" />
               </div>
-              <p className="text-stone-400 italic mb-4">
+              <p className="text-muted-foreground italic mb-4">
                 No hay productos registrados aún.
               </p>
               <Button
                 onClick={openCreate}
                 variant="outline"
-                className="rounded-full border-stone-200 text-stone-600 font-bold uppercase text-[10px] tracking-widest"
+                className="rounded-full font-bold uppercase text-[10px] tracking-widest"
               >
                 Crear el primero
               </Button>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-stone-200">
+            <div className="w-full overflow-x-auto custom-scrollbar">
               <Table className="min-w-[900px]">
                 <TableHeader>
-                  <TableRow className="bg-stone-50/50 hover:bg-stone-50/50 border-stone-100">
-                    <TableHead className="pl-6 text-[10px] font-bold uppercase tracking-widest text-stone-400 w-20">
+                  <TableRow className="bg-muted/50 hover:bg-muted/50 border-border">
+                    <TableHead className="pl-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground w-20">
                       Img
                     </TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       Info. Producto
                     </TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       Categoría / Línea
                     </TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 w-32">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground w-32">
                       Precio
                     </TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-stone-400 w-28">
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground w-28">
                       Estado
                     </TableHead>
-                    <TableHead className="pr-6 text-[10px] font-bold uppercase tracking-widest text-stone-400 text-right w-36">
+                    <TableHead className="pr-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right w-36">
                       Acciones
                     </TableHead>
                   </TableRow>
@@ -305,10 +306,10 @@ export default function ProductosPage() {
                   {products.map((p) => (
                     <TableRow
                       key={p.id}
-                      className="border-stone-50 hover:bg-stone-50/30 transition-colors group"
+                      className="border-border hover:bg-muted/30 transition-colors group"
                     >
                       <TableCell className="pl-6 py-4">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-stone-100 border border-stone-100 shadow-sm">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted border border-border shadow-sm">
                           {p.img ? (
                             <img
                               src={p.img}
@@ -319,75 +320,84 @@ export default function ProductosPage() {
                             <div className="w-full h-full flex items-center justify-center">
                               <ShoppingBag
                                 size={16}
-                                className="text-stone-300"
+                                className="text-muted-foreground/30"
                               />
                             </div>
                           )}
                         </div>
                       </TableCell>
+
                       <TableCell className="py-4">
                         <div className="flex flex-col gap-1.5">
-                          <span className="font-bold text-stone-800 text-sm">
+                          <span className="font-bold text-foreground text-sm">
                             {p.name}
                           </span>
                           <div className="flex gap-1.5 flex-wrap">
                             {p.badge && (
-                              <span className="text-[8px] uppercase tracking-tighter font-black bg-stone-900 text-white px-2 py-0.5 rounded-md italic">
+                              <span className="text-[8px] uppercase tracking-tighter font-black bg-primary text-primary-foreground px-2 py-0.5 rounded-md italic">
                                 {p.badge}
                               </span>
                             )}
                             {p.biodegradable && (
-                              <span className="flex items-center gap-1 text-[9px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100">
+                              <span className="flex items-center gap-1 text-[9px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full border border-emerald-500/20">
                                 <Droplet size={8} /> Bio
                               </span>
                             )}
                             {p.concentrado && (
-                              <span className="flex items-center gap-1 text-[9px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100">
+                              <span className="flex items-center gap-1 text-[9px] font-bold bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20">
                                 <Zap size={8} /> Conc.
                               </span>
                             )}
                           </div>
                         </div>
                       </TableCell>
+
                       <TableCell className="py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm text-stone-600 font-medium">
+                          <span className="text-sm text-foreground font-medium">
                             {getName(p, categories, "category", "categoryId")}
                           </span>
-                          <span className="text-[10px] text-stone-400 uppercase tracking-widest">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
                             {getName(p, lineas, "linea", "lineaId")}
                           </span>
                         </div>
                       </TableCell>
+
                       <TableCell className="py-4">
-                        <span className="font-black text-stone-900 text-base">
+                        <span className="font-black text-foreground text-base">
                           S/ {Number(p.precio).toFixed(2)}
                         </span>
                       </TableCell>
+
                       <TableCell className="py-4">
                         <span
-                          className={`text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full border ${p.active ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-stone-50 text-stone-400 border-stone-100"}`}
+                          className={`text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full border ${
+                            p.active
+                              ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                              : "bg-muted text-muted-foreground border-border"
+                          }`}
                         >
                           {p.active ? "Activo" : "Inactivo"}
                         </span>
                       </TableCell>
+
                       <TableCell className="pr-6 py-4">
                         <div className="flex justify-end items-center gap-1">
                           <button
                             onClick={() => setViewProduct(p)}
-                            className="h-9 w-9 rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                            className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                           >
                             <Eye size={16} />
                           </button>
                           <button
                             onClick={() => openEdit(p)}
-                            className="h-9 w-9 rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                            className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                           >
                             <Pencil size={16} />
                           </button>
                           <button
                             onClick={() => handleDelete(p)}
-                            className="h-9 w-9 rounded-xl flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                            className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -402,9 +412,9 @@ export default function ProductosPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Ver producto */}
+      {/* ── Modal Ver producto ── */}
       <Dialog open={!!viewProduct} onOpenChange={() => setViewProduct(null)}>
-        <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
+        <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl bg-card">
           {viewProduct && (
             <>
               <DialogTitle className="sr-only">{viewProduct.name}</DialogTitle>
@@ -414,7 +424,7 @@ export default function ProductosPage() {
                   className="w-full h-full object-cover"
                   alt=""
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900 to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                 <div className="absolute bottom-6 left-8 right-8">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold mb-1">
                     {getName(viewProduct, categories, "category", "categoryId")}
@@ -425,24 +435,24 @@ export default function ProductosPage() {
                 </div>
               </div>
               <div className="p-8 space-y-6">
-                <p className="text-stone-500 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {viewProduct.desc ||
                     "Este producto es parte de nuestra línea exclusiva de limpieza premium."}
                 </p>
                 <div className="flex gap-2">
                   {viewProduct.biodegradable && (
-                    <span className="flex items-center gap-1.5 text-[10px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl border border-emerald-100">
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-500 px-3 py-1.5 rounded-xl border border-emerald-500/20">
                       <Droplet size={10} /> Biodegradable
                     </span>
                   )}
                   {viewProduct.concentrado && (
-                    <span className="flex items-center gap-1.5 text-[10px] font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-100">
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-xl border border-blue-500/20">
                       <Zap size={10} /> Concentrado
                     </span>
                   )}
                 </div>
-                <div className="flex items-center justify-between pt-6 border-t border-stone-100">
-                  <p className="text-4xl font-black text-stone-900">
+                <div className="flex items-center justify-between pt-6 border-t border-border">
+                  <p className="text-4xl font-black text-foreground">
                     S/ {Number(viewProduct.precio).toFixed(2)}
                   </p>
                   <button
@@ -450,7 +460,7 @@ export default function ProductosPage() {
                       setViewProduct(null);
                       openEdit(viewProduct);
                     }}
-                    className="px-6 py-3 bg-stone-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-all active:scale-95 shadow-lg shadow-stone-200"
+                    className="px-6 py-3 bg-primary text-primary-foreground rounded-full text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all active:scale-95"
                   >
                     Editar Detalle
                   </button>
@@ -461,49 +471,50 @@ export default function ProductosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Formulario Estilizado */}
+      {/* ── Modal Formulario ── */}
       <AnimatePresence>
         {showForm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-md p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
             onClick={(e) => e.target === e.currentTarget && setShowForm(false)}
           >
             <motion.div
               initial={{ y: 50, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 50, opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[2rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-stone-100"
+              className="bg-card rounded-[2rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-border custom-scrollbar"
             >
-              <div className="flex items-center justify-between px-10 pt-10 pb-6 sticky top-0 bg-white/80 backdrop-blur-md z-10">
+              {/* Header del modal */}
+              <div className="flex items-center justify-between px-10 pt-10 pb-6 sticky top-0 bg-card/80 backdrop-blur-md z-10 border-b border-border">
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900">
+                  <h2 className="text-2xl font-bold text-card-foreground">
                     {editingProduct ? "Editar Producto" : "Nuevo Producto"}
                   </h2>
-                  <p className="text-[10px] text-stone-400 mt-1 uppercase tracking-[0.2em] font-bold">
+                  <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-[0.2em] font-bold">
                     Gestión de inventario M&G
                   </p>
                 </div>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="w-10 h-10 rounded-2xl bg-stone-50 hover:bg-stone-100 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-2xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
                 >
-                  <X size={18} className="text-stone-400" />
+                  <X size={18} className="text-muted-foreground" />
                 </button>
               </div>
 
               <div className="px-10 py-6 space-y-8">
-                {/* Sección Imagen */}
+                {/* Sección Imagen + datos principales */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                   <div className="md:col-span-4 space-y-3">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       Imagen Principal
                     </label>
                     <div
                       onClick={() => fileRef.current?.click()}
-                      className="relative aspect-square cursor-pointer rounded-[2rem] border-2 border-dashed border-stone-200 hover:border-stone-400 transition-all overflow-hidden bg-stone-50 group"
+                      className="relative aspect-square cursor-pointer rounded-[2rem] border-2 border-dashed border-border hover:border-ring transition-all overflow-hidden bg-muted group"
                     >
                       {previewImg ? (
                         <>
@@ -512,7 +523,7 @@ export default function ProductosPage() {
                             alt="preview"
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-stone-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <span className="text-white text-[10px] font-bold uppercase tracking-widest">
                               Cambiar Foto
                             </span>
@@ -523,12 +534,15 @@ export default function ProductosPage() {
                           {uploading ? (
                             <Loader2
                               size={24}
-                              className="animate-spin text-stone-900"
+                              className="animate-spin text-primary"
                             />
                           ) : (
                             <>
-                              <ImagePlus size={32} className="text-stone-200" />
-                              <p className="text-[9px] text-stone-400 uppercase font-black">
+                              <ImagePlus
+                                size={32}
+                                className="text-muted-foreground/30"
+                              />
+                              <p className="text-[9px] text-muted-foreground uppercase font-black">
                                 Subir archivo
                               </p>
                             </>
@@ -552,7 +566,7 @@ export default function ProductosPage() {
                   <div className="md:col-span-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                           Nombre del Producto
                         </label>
                         <Input
@@ -561,11 +575,11 @@ export default function ProductosPage() {
                           onChange={(e) =>
                             setForm((f) => ({ ...f, name: e.target.value }))
                           }
-                          className="rounded-xl border-stone-200 h-12 focus-visible:ring-stone-900"
+                          className="rounded-xl h-12"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                           Precio (PEN)
                         </label>
                         <Input
@@ -575,13 +589,13 @@ export default function ProductosPage() {
                           onChange={(e) =>
                             setForm((f) => ({ ...f, precio: e.target.value }))
                           }
-                          className="rounded-xl border-stone-200 h-12 font-bold text-lg"
+                          className="rounded-xl h-12 font-bold text-lg"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         Descripción Corta
                       </label>
                       <Textarea
@@ -591,7 +605,7 @@ export default function ProductosPage() {
                           setForm((f) => ({ ...f, desc: e.target.value }))
                         }
                         rows={3}
-                        className="rounded-xl border-stone-200 resize-none focus-visible:ring-stone-900"
+                        className="rounded-xl resize-none"
                       />
                     </div>
 
@@ -618,7 +632,8 @@ export default function ProductosPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t border-stone-100 pt-8">
+                {/* Aroma, Formato y Badges */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end border-t border-border pt-8">
                   <div className="grid grid-cols-2 gap-4">
                     <SelectField
                       label="Aroma (Opcional)"
@@ -658,7 +673,11 @@ export default function ProductosPage() {
                         onClick={() =>
                           setForm((f) => ({ ...f, [key]: !(f as any)[key] }))
                         }
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all ${(form as any)[key] ? `${color} text-white border-transparent shadow-lg` : "border-stone-100 text-stone-400 bg-stone-50"}`}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                          (form as any)[key]
+                            ? `${color} text-white border-transparent shadow-lg`
+                            : "border-border text-muted-foreground bg-muted"
+                        }`}
                       >
                         {(form as any)[key] && <Check size={12} />} {label}
                       </button>
@@ -666,12 +685,12 @@ export default function ProductosPage() {
                   </div>
                 </div>
 
-                {/* Footer del Modal */}
+                {/* Footer del modal */}
                 <div className="flex gap-4 pt-4 pb-10">
                   <Button
                     onClick={handleSave}
                     disabled={saving || uploading}
-                    className="flex-1 bg-stone-900 hover:bg-stone-800 text-white rounded-2xl h-14 gap-3 text-xs font-bold uppercase tracking-widest shadow-xl shadow-stone-200"
+                    className="flex-1 bg-primary hover:opacity-90 text-primary-foreground rounded-2xl h-14 gap-3 text-xs font-bold uppercase tracking-widest"
                   >
                     {saving ? (
                       <Loader2 size={18} className="animate-spin" />
@@ -685,7 +704,7 @@ export default function ProductosPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowForm(false)}
-                    className="rounded-2xl h-14 px-10 border-stone-200 font-bold text-stone-400 uppercase text-[10px] tracking-widest"
+                    className="rounded-2xl h-14 px-10 font-bold text-muted-foreground uppercase text-[10px] tracking-widest"
                   >
                     Cancelar
                   </Button>

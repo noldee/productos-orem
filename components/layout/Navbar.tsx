@@ -236,6 +236,7 @@ export function Navbar() {
         </div>
 
         {/* Acceso Clientes Mobile Estilo Link Premium */}
+        {/* Acceso Clientes Mobile Estilo Link Premium */}
         <div
           ref={(el) => {
             linksRef.current[NAV_LINKS.length] = el;
@@ -244,21 +245,44 @@ export function Navbar() {
         >
           {!loading &&
             (user ? (
-              <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-[#8CC63F] text-white flex items-center justify-center font-black">
+              <div className="bg-white/5 rounded-[32px] p-6 border border-white/10 backdrop-blur-md">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-[#8CC63F] text-white flex items-center justify-center font-black text-xl shadow-[0_0_20px_rgba(140,198,63,0.3)]">
                     {user.email?.[0].toUpperCase()}
                   </div>
-                  <span className="text-white font-black text-sm truncate">
-                    {user.email}
-                  </span>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">
+                      Sesión activa
+                    </span>
+                    <span className="text-white font-bold text-sm truncate">
+                      {user.email}
+                    </span>
+                  </div>
                 </div>
-                <button
-                  onClick={logout}
-                  className="w-full py-3 rounded-lg bg-red-500/10 text-red-400 font-black text-[10px] uppercase tracking-widest border border-red-500/20"
-                >
-                  Cerrar Sesión
-                </button>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {/* BOTÓN DASHBOARD (Solo si es Admin) */}
+                  {isAdmin && (
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-[#00AEEF] text-white font-black text-[11px] uppercase tracking-widest hover:bg-[#009bd4] transition-all shadow-lg shadow-[#00AEEF]/20"
+                    >
+                      <LayoutDashboard size={18} /> Ir al Dashboard
+                    </Link>
+                  )}
+
+                  {/* BOTÓN CERRAR SESIÓN */}
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-red-500/10 text-red-400 font-black text-[11px] uppercase tracking-widest border border-red-500/20 hover:bg-red-500/20 transition-all"
+                  >
+                    <LogOut size={18} /> Cerrar Sesión
+                  </button>
+                </div>
               </div>
             ) : (
               <Link
