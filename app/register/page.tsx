@@ -12,7 +12,7 @@ import {
   Building2,
 } from "lucide-react";
 import Link from "next/link";
-import { api } from "@/lib/axios";
+import { api } from "@/lib/api";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
