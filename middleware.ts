@@ -1,4 +1,4 @@
-// middleware.ts (raíz del proyecto)
+// middleware.ts (raíz del proyecto Next.js)
 import { NextResponse, type NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
@@ -16,16 +16,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Con token → no puede ir a login/register
+  // Con token → no puede volver a login/register
   if (token && isAuthRoute) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Agrega el token al header para que NestJS lo reciba
-  const requestHeaders = new Headers(request.headers);
-  if (token) requestHeaders.set("Authorization", `Bearer ${token}`);
-
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  // IMPORTANTE: ya NO reenviamos el token como header.
+  // La cookie httpOnly se envía automáticamente en las peticiones al backend
+  // gracias a withCredentials: true en axios.
+  return NextResponse.next();
 }
 
 export const config = {

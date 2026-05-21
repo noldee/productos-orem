@@ -171,13 +171,13 @@ export function Navbar() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-48 p-2 border-slate-200"
+                      className="w-48 p-2 border-slate-200 dark:bg-white"
                     >
                       {isAdmin && (
                         <DropdownMenuItem asChild>
                           <Link
                             href="/dashboard"
-                            className="flex items-center gap-2 font-bold text-[#00AEEF] py-2 cursor-pointer"
+                            className="flex items-center dark:hover:bg-[#8f99a7]  gap-2 font-bold text-[#00AEEF] py-2 cursor-pointer"
                           >
                             <LayoutDashboard size={14} /> Dashboard
                           </Link>
@@ -185,7 +185,7 @@ export function Navbar() {
                       )}
                       <DropdownMenuItem
                         onClick={logout}
-                        className="flex items-center gap-2 font-bold text-red-500 py-2 cursor-pointer"
+                        className="flex items-center gap-2 font-bold dark:hover:bg-[#8f99a7] text-red-500 py-2 cursor-pointer"
                       >
                         <LogOut size={14} /> Cerrar Sesión
                       </DropdownMenuItem>

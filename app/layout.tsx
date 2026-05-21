@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { CartProvider } from "@/components/providers/CartProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${geistLato.variable}  antialiased `}
       >
+        <Toaster />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

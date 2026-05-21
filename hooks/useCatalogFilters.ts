@@ -8,6 +8,7 @@ export interface Product {
   name: string;
   desc: string;
   precio: number;
+  precioMayor: number;
   img: string;
   badge: string | null;
   biodegradable: boolean;

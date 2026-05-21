@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { api } from "@/lib/api";
-import { Pencil, Trash2, Plus, Loader2, Wind, Eye, Info } from "lucide-react";
+import { toast } from "sonner";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Pencil,
+  Trash2,
+  Plus,
+  Loader2,
+  Eye,
+  Search,
+  ArrowUpDown, // <-- Faltaba este icono
+  ArrowUp, // <-- Faltaba este icono
+  ArrowDown, // <-- Faltaba este icono
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +23,21 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+
+// TanStack Table completo
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel, // <-- Asegúrate de que se importe correctamente
+  getPaginationRowModel,
+  flexRender,
+  ColumnDef,
+  SortingState,
+  ColumnFiltersState,
+} from "@tanstack/react-table";
 
 interface Aroma {
   id: number;
@@ -32,11 +49,16 @@ export default function AromasPage() {
   const [aromas, setAromas] = useState<Aroma[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // TanStack state
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+
   // Modales
   const [showFormModal, setShowFormModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  // Datos
+  // Estados de datos
   const [selectedAroma, setSelectedAroma] = useState<Aroma | null>(null);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
@@ -48,6 +70,11 @@ export default function AromasPage() {
     try {
       const { data } = await api.get("/aromas");
       setAromas(Array.isArray(data) ? data : data?.data || []);
+    } catch (error) {
+      console.error("Error al cargar aromas:", error);
+      toast.error("No se pudieron cargar los aromas de producto", {
+        duration: 2000,
+      });
     } finally {
       setLoading(false);
     }
@@ -82,14 +109,25 @@ export default function AromasPage() {
       const payload = { name, description: desc || null };
       if (selectedAroma) {
         await api.put(`/aromas/${selectedAroma.id}`, payload);
+        toast.success("Aroma actualizado correctamente", {
+          duration: 2000,
+        });
       } else {
         await api.post("/aromas", payload);
+        toast.success("Aroma creado exitosamente", {
+          duration: 2000,
+        });
       }
       setShowFormModal(false);
       fetchAromas();
-    } catch (e: any) {
-      if (e.response?.data?.message?.includes("Unique")) {
-        alert("Ya existe un aroma con ese nombre");
+    } catch (error: any) {
+      console.error("Error al guardar:", error);
+      if (error.response?.data?.message?.includes("Unique")) {
+        toast.error("Ya existe un aroma con ese nombre", { duration: 2000 });
+      } else {
+        toast.error("Ocurrió un error al intentar guardar los cambios", {
+          duration: 2000,
+        });
       }
     } finally {
       setSaving(false);
@@ -97,232 +135,361 @@ export default function AromasPage() {
   };
 
   const remove = async (id: number) => {
-    if (!confirm("¿Deseas eliminar este aroma?")) return;
+    if (!confirm("¿Eliminar este aroma de producto?")) return;
     setDeletingId(id);
     try {
       await api.delete(`/aromas/${id}`);
+      toast.success("Aroma eliminado con éxito", {
+        duration: 2000,
+      });
       fetchAromas();
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      toast.error("No se pudo eliminar el aroma seleccionado", {
+        duration: 2000,
+      });
     } finally {
       setDeletingId(null);
     }
   };
 
-  return (
-    <div className="w-full space-y-6 p-4 md:p-8 bg-background min-h-screen">
-      {/* HEADER: Siguiendo la línea "Pro" */}
-      <div className="relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-6 rounded-[28px] border border-border">
-        <div className="flex items-center gap-4 z-10">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-            <Wind size={26} className="text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Aromas <span className="text-primary">Pro</span>
-            </h1>
-            <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em]">
-              {aromas.length} fragancias
-            </p>
-          </div>
-        </div>
+  // ─── COLUMNAS SIMPLES Y ORDENABLES ───────────────────────────────────────────
+  // ─── COLUMNAS SIMPLES Y ORDENABLES ───────────────────────────────────────────
+  const columns = useMemo<ColumnDef<Aroma>[]>(
+    () => [
+      {
+        id: "numero", // Usamos un ID único para la columna de numeración
+        header: "N°",
+        cell: ({ row }) => {
+          // row.index arranca en 0, así que le sumamos 1 para que muestre 1, 2, 3, 4...
+          return (
+            <span className="text-muted-foreground font-mono text-sm">
+              #{row.index + 1}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "name",
+        header: "NOMBRE DE FRAGANCIA",
+        cell: ({ getValue }) => (
+          <span className="font-semibold text-foreground text-sm">
+            {getValue() as string}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "description",
+        header: "DESCRIPCIÓN",
+        cell: ({ getValue }) => (
+          <span className="text-muted-foreground text-sm">
+            {(getValue() as string) || "— Sin descripción —"}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => <span className="sr-only">Acciones</span>,
+        cell: ({ row }) => {
+          const aroma = row.original;
+          return (
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openView(aroma)}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
+                <Eye size={16} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openForm(aroma)}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
+                <Pencil size={16} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(aroma.id)}
+                disabled={deletingId === aroma.id}
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              >
+                {deletingId === aroma.id ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}
+              </Button>
+            </div>
+          );
+        },
+      },
+    ],
+    [deletingId],
+  );
 
+  const table = useReactTable({
+    data: aromas,
+    columns,
+    state: { sorting, columnFilters, globalFilter },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(), // <-- Esta función procesa el orden real en pantalla
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: { pageSize: 10 },
+      sorting: [{ id: "id", desc: false }],
+    },
+  });
+
+  return (
+    <div className="w-full space-y-4 p-6 bg-background">
+      {/* HEADER LIMPIO COMO LAS OTRAS SECCIONES */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Aromas
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Administra el catálogo y familias de productos de tu inventario.
+          </p>
+        </div>
         <Button
           onClick={() => openForm()}
-          className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 px-8 gap-2 font-bold active:scale-95"
+          className="bg-foreground text-background hover:bg-foreground/90 font-medium"
         >
-          <Plus size={18} /> Nuevo Aroma
+          <Plus size={16} className="mr-2" /> Agregar Línea
         </Button>
       </div>
 
-      {/* TABLA: Acciones fijas y Scroll refinado */}
-      <Card className="border-border  rounded-[28px] overflow-hidden bg-card/40 backdrop-blur-sm">
-        <CardContent className="p-0">
-          <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-            <div className="min-w-[800px]">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  <TableRow className="border-border/40 hover:bg-transparent">
-                    <TableHead className="py-4 pl-8 text-primary font-bold text-[10px] tracking-[0.2em] w-20">
-                      ID
-                    </TableHead>
-                    <TableHead className="text-muted-foreground font-bold text-[10px] tracking-[0.2em]">
-                      FRAGANCIA
-                    </TableHead>
-                    <TableHead className="text-muted-foreground font-bold text-[10px] tracking-[0.2em]">
-                      NOTAS OLFATIVAS
-                    </TableHead>
-                    <TableHead className="text-right pr-8 text-muted-foreground font-bold text-[10px] tracking-[0.2em] w-48">
-                      ACCIONES
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="py-24 text-center">
-                        <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary/50" />
-                      </TableCell>
-                    </TableRow>
-                  ) : aromas.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="py-24 text-center text-muted-foreground italic"
-                      >
-                        No hay aromas en la colección.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    aromas.map((aroma, i) => (
-                      <TableRow
-                        key={aroma.id}
-                        className="border-border/10 group hover:bg-primary/[0.02] transition-colors"
-                      >
-                        <TableCell className="py-4 pl-8 font-mono text-primary/60 text-xs italic">
-                          {String(i + 1).padStart(2, "0")}
-                        </TableCell>
-                        <TableCell className="font-bold text-foreground">
-                          {aroma.name}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground/50 italic text-xs max-w-[300px] truncate">
-                          {aroma.description || "— Sin descripción —"}
-                        </TableCell>
+      {/* CONTENEDOR PRINCIPAL */}
+      <Card className="border border-border rounded-lg shadow-sm bg-card">
+        <div className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border/60">
+          <span className="text-sm text-muted-foreground font-medium">
+            Total: {table.getFilteredRowModel().rows.length} registros
+          </span>
+          <div className="relative w-full sm:w-72">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              placeholder="Buscar línea..."
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="pl-9 h-9 bg-background border-border"
+            />
+          </div>
+        </div>
 
-                        {/* ACCIONES FIJAS (Sin hover delay) */}
-                        <TableCell className="text-right pr-8">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openView(aroma)}
-                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-primary border border-border/50 hover:scale-110"
-                            >
-                              <Eye size={16} />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openForm(aroma)}
-                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-green-400 border border-border/50 hover:scale-110"
-                            >
-                              <Pencil size={16} />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => remove(aroma.id)}
-                              disabled={deletingId === aroma.id}
-                              className="h-9 w-9 rounded-lg bg-background/40 text-muted-foreground hover:text-destructive border border-border/50 hover:scale-110"
-                            >
-                              {deletingId === aroma.id ? (
-                                <Loader2 size={16} className="animate-spin" />
-                              ) : (
-                                <Trash2 size={16} />
-                              )}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+        <CardContent className="p-0">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr
+                    key={headerGroup.id}
+                    className="border-b border-border bg-muted/20"
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+
+              <tbody className="divide-y divide-border/40">
+                {loading ? (
+                  <tr>
+                    <td colSpan={columns.length} className="py-12 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground/60" />
+                    </td>
+                  </tr>
+                ) : table.getRowModel().rows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
+                      No se encontraron registros.
+                    </td>
+                  </tr>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="py-3 px-4 align-middle text-sm"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* PAGINACIÓN ESTÁNDAR */}
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/10">
+            <span className="text-xs text-muted-foreground font-medium">
+              Página {table.getState().pagination.pageIndex + 1} de{" "}
+              {table.getPageCount()}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="h-8 text-xs"
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="h-8 text-xs"
+              >
+                Siguiente
+              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* MODAL: FORMULARIO */}
+      {/* MODAL: FORMULARIO NORMAL */}
       <Dialog open={showFormModal} onOpenChange={setShowFormModal}>
-        <DialogContent className="sm:max-w-[440px] rounded-[32px] border-border bg-card p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-primary/20 to-transparent p-8 border-b border-border">
-            <DialogTitle className="text-2xl font-bold">
-              {selectedAroma ? "Editar Aroma" : "Nuevo Aroma"}
+        <DialogContent className="sm:max-w-[420px] p-6 bg-card border border-border rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-foreground">
+              {selectedAroma ? "Editar Línea" : "Agregar Línea"}
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-[10px] mt-1 uppercase tracking-widest font-bold">
-              Define la esencia del producto
+            <DialogDescription className="text-sm text-muted-foreground">
+              Administra los datos de la familia seleccionada.
             </DialogDescription>
-          </div>
-          <div className="p-8 space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-primary ml-1">
-                Nombre de Fragancia
+          </DialogHeader>
+          <div className="space-y-4 my-4">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground">
+                Nombre de Línea
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ej. Lavanda Silvestre"
-                className="h-12 rounded-xl bg-background border-border"
+                placeholder="Ej. Lavanda"
+                className="h-9 bg-background border-border"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-primary ml-1">
-                Descripción / Notas
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground">
+                Descripción
               </label>
               <Input
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                placeholder="Ej. Notas cítricas y frescas..."
-                className="h-12 rounded-xl bg-background border-border"
+                placeholder="Solo detergentes con aroma a lavanda"
+                className="h-9 bg-background border-border"
               />
             </div>
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowFormModal(false)}
-                className="flex-1 h-12 rounded-xl font-bold"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving || !name.trim()}
-                className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold"
-              >
-                {saving ? <Loader2 className="animate-spin" /> : "Guardar"}
-              </Button>
-            </div>
           </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFormModal(false)}
+              className="h-9"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || !name.trim()}
+              size="sm"
+              className="h-9 ml-2 bg-foreground text-background hover:bg-foreground/90 font-medium"
+            >
+              {saving ? (
+                <Loader2 className="animate-spin h-4 w-4" />
+              ) : (
+                "Guardar"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* MODAL: VISTA */}
+      {/* MODAL: DETALLES VISTA REAL */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent className="sm:max-w-[460px] rounded-[32px] border-border bg-card p-8">
-          <DialogHeader className="flex flex-row items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-              <Wind size={24} />
-            </div>
-            <div className="text-left">
-              <DialogTitle className="text-2xl font-bold">
-                Perfil del Aroma
-              </DialogTitle>
-              <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Catálogo Maestro
-              </DialogDescription>
-            </div>
+        <DialogContent className="sm:max-w-[420px] p-6 bg-card border border-border rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-foreground">
+              Detalles de la Línea
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Información completa del registro seleccionado.
+            </DialogDescription>
           </DialogHeader>
-          <div className="p-6 rounded-2xl bg-background/50 border border-border mb-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
-              Fragancia
-            </p>
-            <p className="text-xl font-bold text-foreground mb-4">
-              {selectedAroma?.name}
-            </p>
-            <div className="h-px w-full bg-border/40 mb-4" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
-              Notas Olfativas
-            </p>
-            <p className="text-muted-foreground italic text-sm">
-              {selectedAroma?.description ||
-                "No hay notas específicas para esta esencia."}
-            </p>
+          <div className="space-y-3 my-4 text-sm border border-border/60 p-4 rounded-md bg-muted/10">
+            <div>
+              <span className="text-xs font-medium text-muted-foreground block">
+                ID Registro
+              </span>
+              <span className="font-mono text-foreground">
+                #{String(selectedAroma?.id).padStart(3, "0")}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-medium text-muted-foreground block">
+                Nombre
+              </span>
+              <span className="font-medium text-foreground">
+                {selectedAroma?.name}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-medium text-muted-foreground block">
+                Descripción
+              </span>
+              <span className="text-foreground">
+                {selectedAroma?.description || "— Sin descripción asignada —"}
+              </span>
+            </div>
           </div>
-          <Button
-            onClick={() => setShowViewModal(false)}
-            className="w-full h-12 rounded-xl bg-secondary text-foreground hover:bg-border font-bold"
-          >
-            Cerrar Vista
-          </Button>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowViewModal(false)}
+              size="sm"
+              className="w-full sm:w-auto h-9 rounded-md bg-muted text-foreground hover:bg-muted/80 transition-colors border border-border text-sm font-medium"
+            >
+              Cerrar Vista
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

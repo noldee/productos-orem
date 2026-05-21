@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart,
@@ -12,191 +12,390 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { Loader2, Calendar, ArrowUpRight } from "lucide-react";
+import {
+  Loader2,
+  Calendar,
+  ArrowUpRight,
+  ShieldCheck,
+  Package,
+  Sparkles,
+  Layers,
+  Award,
+  CheckCircle2,
+} from "lucide-react";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
-const monthlyData = [
-  { month: "Ene", views: 4500 },
-  { month: "Feb", views: 5200 },
-  { month: "Mar", views: 3800 },
-  { month: "Abr", views: 6100 },
-  { month: "May", views: 5900 },
-  { month: "Jun", views: 7200 },
+// ── IMPORTAMOS TU INSTANCIA REAL DE AXIOS ──
+import { api } from "@/lib/api";
+
+interface Producto {
+  id: number;
+  name: string;
+  desc: string;
+  precio: number;
+  precioMayor?: number | null;
+  img: string;
+  badge?: string | null;
+  biodegradable: boolean;
+  concentrado: boolean;
+  active: boolean;
+  categoryId: number;
+  category?: { id: number; name: string };
+  lineaId: number;
+  linea?: { id: number; name: string };
+  aromaId?: number | null;
+  aroma?: { id: number; name: string } | null;
+}
+
+const MARCAS_REGISTRADAS = [
+  { name: "Clorox", desc: "Desinfección" },
+  { name: "Sapolio", desc: "Limpieza Hogar" },
+  { name: "Daryza", desc: "Línea Profesional" },
+  { name: "Suavitel", desc: "Cuidado Ropa" },
+  { name: "Elite", desc: "Papeles e Higiene" },
+  { name: "Glade", desc: "Aromatizantes" },
 ];
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const { resolvedTheme } = useTheme();
+  const { user } = useAuth();
 
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [loadingAPI, setLoadingAPI] = useState(true);
+
+  // ── FETCH USANDO TU INSTANCIA DE AXIOS ──
   useEffect(() => {
     setMounted(true);
+    const timer = setInterval(() => setCurrentDateTime(new Date()), 60000);
+
+    const fetchProductos = async () => {
+      try {
+        // Axios mapea automáticamente la URL base, solo le pasamos el endpoint relativo
+        const response = await api.get("/products");
+
+        // Axios guarda la respuesta del servidor directamente en .data
+        if (response.data) {
+          setProductos(response.data);
+        }
+      } catch (error) {
+        console.error("Error cargando productos con Axios en M&G:", error);
+      } finally {
+        setLoadingAPI(false);
+      }
+    };
+
+    fetchProductos();
+    return () => clearInterval(timer);
   }, []);
 
-  const isDark = resolvedTheme === "dark";
+  // ── PROCESAMIENTO DE TU MODELO DE PRISMA ──
+  const { totalProductos, stockPorCategoria, totalLineas, totalAromas } =
+    useMemo(() => {
+      if (!productos || productos.length === 0) {
+        return {
+          totalProductos: 0,
+          totalLineas: 0,
+          totalAromas: 0,
+          stockPorCategoria: [],
+        };
+      }
 
-  // CONFIGURACIÓN DE COLORES DINÁMICA MEJORADA
-  const colors = {
-    celeste: "#00aeef",
-    // En modo claro usamos un gris más fuerte para que no se pierda (slate-200/300)
-    barInactive: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.15)",
-    // Cuadrícula más definida en modo claro
-    grid: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.08)",
-    // Texto de ejes (slate-400 en oscuro, slate-500 en claro)
-    text: isDark ? "#94a3b8" : "#64748b",
-    tooltipBg: isDark ? "#171717" : "#ffffff",
-    tooltipBorder: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
-  };
+      const total = productos.length;
+      const lineasUnicas = new Set(productos.map((p) => p.lineaId));
+      const aromasUnicos = new Set(
+        productos.map((p) => p.aromaId).filter(Boolean),
+      );
 
-  if (!mounted) {
+      const conteoCategorias: Record<string, number> = {};
+
+      productos.forEach((prod) => {
+        const catName = prod.category?.name || `Categoría ${prod.categoryId}`;
+        conteoCategorias[catName] = (conteoCategorias[catName] || 0) + 1;
+      });
+
+      const dataGrafico = Object.keys(conteoCategorias).map((key) => ({
+        categoria: key,
+        cantidad: conteoCategorias[key],
+      }));
+
+      return {
+        totalProductos: total,
+        totalLineas: lineasUnicas.size,
+        totalAromas: aromasUnicos.size,
+        stockPorCategoria: dataGrafico,
+      };
+    }, [productos]);
+
+  const formattedDate = currentDateTime.toLocaleDateString("es-PE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  const chartConfig = useMemo(() => {
+    const isDark = resolvedTheme === "dark";
+    return {
+      primary: "#3874ff",
+      inactive: isDark ? "#1e293b" : "#cbd5e1",
+      grid: isDark ? "rgba(55, 69, 87, 0.15)" : "rgba(226, 232, 240, 0.6)",
+      text: isDark ? "#94a3b8" : "#64748b",
+      tooltipBg: isDark ? "#111625" : "#ffffff",
+      tooltipBorder: isDark ? "#1e293b" : "#e2e8f0",
+    };
+  }, [resolvedTheme]);
+
+  if (!mounted || loadingAPI)
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
-  }
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground p-6 md:p-12 font-sans selection:bg-primary/30 transition-colors duration-500">
-      <div className="max-w-5xl mx-auto space-y-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-4"
-        >
-          <div>
-            <div className="flex items-center gap-2 text-primary mb-2">
-              <div className="w-8 h-0.5 bg-primary"></div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em]">
-                Analytics Pro
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary/20 p-4 md:p-8 lg:p-10 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* HEADER */}
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-card p-6 rounded-2xl border border-border shadow-sm">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-primary">
+              <div className="w-2 h-2 bg-[#10b981] rounded-full animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-90">
+                Panel de Control Activo · M&G
               </span>
             </div>
-            <h1 className="text-4xl font-bold tracking-tight">
-              Bienvenida,{" "}
-              <span className="text-primary italic">Graciela Hernandez</span>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+              Dashboard{" "}
+              <span className="text-primary font-black">Overview</span>
             </h1>
-            <p className="text-muted-foreground mt-2 max-w-md">
-              Visualiza el crecimiento de{" "}
-              <span className="text-foreground font-medium underline decoration-primary/30">
-                M&G Servicios Generales
-              </span>{" "}
-              a través de las interacciones mensuales.
+            <p className="text-sm font-medium text-muted-foreground">
+              Sincronizado de forma segura mediante Axios e interceptores de
+              sesión.
             </p>
           </div>
 
-          <div className="bg-card border border-border p-4 rounded-2xl flex items-center gap-4 shadow-sm">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Calendar className="text-primary" size={20} />
+          <div className="flex items-center gap-4 bg-muted p-3 rounded-xl border border-border">
+            <div className="bg-primary/10 p-2.5 rounded-lg text-primary">
+              <Calendar size={20} />
             </div>
-            <div>
-              <p className="text-[10px] uppercase text-muted-foreground font-bold leading-none mb-1">
-                Periodo Actual
+            <div className="pr-4">
+              <p className="text-[10px] uppercase font-black text-muted-foreground opacity-60 leading-none mb-1">
+                Fecha Actual
               </p>
-              <p className="text-sm font-semibold">Enero — Junio 2026</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Gráfico de Barras Principal */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card border border-border rounded-[2.5rem] p-8 relative overflow-hidden transition-all shadow-xl shadow-black/3"
-        >
-          {/* Decoración de fondo */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-
-          <div className="flex items-center justify-between mb-8 relative z-10">
-            <div>
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                Tráfico Mensual
-                <ArrowUpRight size={18} className="text-musgo" />
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Vistas totales por mes
+              <p className="text-sm font-bold capitalize text-foreground">
+                {formattedDate}
               </p>
             </div>
           </div>
+        </header>
 
-          <div className="h-100 w-full relative z-10">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={monthlyData}
-                margin={{ top: 20, right: 0, left: -10, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="4 4"
-                  vertical={false}
-                  stroke={colors.grid}
-                />
-                <XAxis
-                  dataKey="month"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: colors.text, fontSize: 11, fontWeight: 600 }}
-                  height={50}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: colors.text, fontSize: 11, fontWeight: 500 }}
-                />
-                <Tooltip
-                  cursor={{
-                    fill: isDark
-                      ? "rgba(255,255,255,0.05)"
-                      : "rgba(0,0,0,0.04)",
-                  }}
-                  contentStyle={{
-                    backgroundColor: colors.tooltipBg,
-                    borderRadius: "16px",
-                    border: `1px solid ${colors.tooltipBorder}`,
-                    boxShadow: "0 20px 40px -10px rgba(0,0,0,0.1)",
-                    padding: "12px 16px",
-                  }}
-                  itemStyle={{
-                    color: colors.celeste,
-                    fontWeight: "800",
-                    fontSize: "14px",
-                  }}
-                  labelStyle={{
-                    color: colors.text,
-                    marginBottom: "4px",
-                    fontWeight: "bold",
-                  }}
-                />
-                <Bar dataKey="views" radius={[10, 10, 4, 4]} barSize={50}>
-                  {monthlyData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={
-                        index === monthlyData.length - 1
-                          ? colors.celeste
-                          : colors.barInactive
-                      }
-                      className="transition-all duration-300 hover:opacity-80 cursor-pointer"
+        {/* TARJETAS CON DATA REAL */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              label: "Productos Registrados",
+              val: `${totalProductos} Ítems`,
+              sub: "Cargados desde Axios",
+              icon: <Package size={18} />,
+              color: "text-blue-500",
+              bg: "bg-blue-500/10 border-blue-500/20",
+            },
+            {
+              label: "Líneas Utilizadas",
+              val: `${totalLineas} Mapeadas`,
+              sub: "Relaciones mediante lineaId",
+              icon: <Layers size={18} />,
+              color: "text-emerald-500",
+              bg: "bg-emerald-500/10 border-emerald-500/20",
+            },
+            {
+              label: "Variaciones de Aroma",
+              val: `${totalAromas} Fragancias`,
+              sub: "Asignados mediante aromaId",
+              icon: <Sparkles size={18} />,
+              color: "text-cyan-500",
+              bg: "bg-cyan-500/10 border-cyan-500/20",
+            },
+            {
+              label: "Marcas en Almacén",
+              val: "9 Distribuciones",
+              sub: "Gestión interna M&G",
+              icon: <Award size={18} />,
+              color: "text-purple-500",
+              bg: "bg-purple-500/10 border-purple-500/20",
+            },
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              className="bg-card border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div
+                  className={cn("p-2.5 rounded-xl border", stat.bg, stat.color)}
+                >
+                  {stat.icon}
+                </div>
+                <Badge
+                  variant="outline"
+                  className="text-[9px] font-black border-border bg-muted text-muted-foreground"
+                >
+                  Axios Client
+                </Badge>
+              </div>
+              <div>
+                <p className="text-[11px] font-black text-muted-foreground uppercase tracking-wider">
+                  {stat.label}
+                </p>
+                <h3 className="text-2xl font-bold text-foreground mt-0.5 tracking-tight">
+                  {stat.val}
+                </h3>
+                <p className="text-[11px] font-medium text-muted-foreground opacity-80 mt-1 flex items-center gap-1">
+                  <CheckCircle2 size={10} className="text-emerald-500" />{" "}
+                  {stat.sub}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* GRÁFICO DINÁMICO */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
+            <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
+              <div>
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  Productos por Categoría Real
+                  <ArrowUpRight size={16} className="text-primary" />
+                </h2>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Mapeo generado de forma dinámica desde tu base de datos
+                  relacional.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 h-[340px] w-full">
+              {stockPorCategoria.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={stockPorCategoria}
+                    margin={{ top: 10, right: 0, left: -25, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="0"
+                      vertical={false}
+                      stroke={chartConfig.grid}
                     />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                    <XAxis
+                      dataKey="categoria"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{
+                        fill: chartConfig.text,
+                        fontSize: 10,
+                        fontWeight: 700,
+                      }}
+                      dy={12}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{
+                        fill: chartConfig.text,
+                        fontSize: 11,
+                        fontWeight: 600,
+                      }}
+                    />
+                    <Tooltip
+                      cursor={{ fill: chartConfig.inactive, opacity: 0.2 }}
+                      contentStyle={{
+                        backgroundColor: chartConfig.tooltipBg,
+                        borderRadius: "12px",
+                        border: `1px solid ${chartConfig.tooltipBorder}`,
+                        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        color: resolvedTheme === "dark" ? "#f8fafc" : "#0f172a",
+                      }}
+                    />
+                    <Bar
+                      dataKey="cantidad"
+                      name="Cantidad"
+                      radius={[6, 6, 0, 0]}
+                      barSize={28}
+                    >
+                      {stockPorCategoria.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={
+                            index % 2 === 0
+                              ? chartConfig.primary
+                              : chartConfig.inactive
+                          }
+                          className="transition-all duration-300 hover:opacity-80"
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
+                  No se encontraron productos en tu base de datos para graficar.
+                  Asegúrate de incluir la relación `category` en tu API de
+                  Prisma.
+                </div>
+              )}
+            </div>
           </div>
-        </motion.div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold px-2 pb-6">
-          <p className="hover:text-primary transition-colors cursor-default">
-            M&G Servicios Generanles
-          </p>
-          <div className="flex gap-6">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-              Status: Online
-            </span>
-            <span>v1.0.1</span>
+          {/* MARCAS */}
+          <div className="lg:col-span-4 bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-black text-muted-foreground uppercase tracking-widest mb-4">
+                Marcas en Portafolio
+              </h3>
+              <p className="text-xs text-muted-foreground mb-6">
+                Filtros estables asignados a las familias de productos de M&G.
+              </p>
+              <div className="space-y-3">
+                {MARCAS_REGISTRADAS.map((marca, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                      <span className="text-xs font-bold text-foreground">
+                        {marca.name}
+                      </span>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-bold text-muted-foreground border-border bg-card"
+                    >
+                      {marca.desc}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* FOOTER */}
+        <footer className="pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground opacity-80">
+            <ShieldCheck size={14} className="text-primary" />
+            <span>M&G SERVICIOS GENERALES S.A.C. · 2026</span>
+          </div>
+        </footer>
       </div>
     </div>
   );

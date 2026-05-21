@@ -7,9 +7,9 @@ import {
   Trash2,
   Plus,
   Loader2,
-  Tag,
-  AlignLeft,
-  Layers,
+  Search,
+  Folder,
+  FileText,
 } from "lucide-react";
 import {
   Table,
@@ -25,8 +25,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 
 interface Category {
@@ -37,6 +39,7 @@ interface Category {
 
 export default function CategoriasPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -107,191 +110,214 @@ export default function CategoriasPage() {
     }
   };
 
+  // Filtro global estilo PrimeFaces DataTable
+  const filteredCategories = categories
+    .filter((cat) => {
+      const search = globalFilter.toLowerCase();
+      return (
+        cat.name.toLowerCase().includes(search) ||
+        (cat.description && cat.description.toLowerCase().includes(search)) ||
+        cat.id.toString().includes(search)
+      );
+    })
+    .sort((a, b) => a.id - b.id);
+
   return (
-    <div className="w-full space-y-8 p-4 md:p-10 bg-background min-h-screen font-sans selection:bg-primary/30">
-      {/* Header Estilo Premium M&G */}
-      <div className="relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-card p-8 md:p-10 rounded-[40px] border border-border shadow-2xl">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 blur-[80px] -mr-10 -mt-10" />
-
-        <div className="flex items-center gap-6 relative z-10">
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-[28px] bg-gradient-to-br from-primary to-[#008cc0] flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-            <Layers size={32} className="text-primary-foreground" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 text-primary mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em]">
-                Gestión de Inventario
-              </span>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-              Categorías
-            </h1>
-            <p className="text-muted-foreground font-medium text-sm mt-1">
-              Organiza tus productos en{" "}
-              <span className="text-foreground">{categories.length}</span>{" "}
-              secciones
-            </p>
-          </div>
+    <div className="w-full max-w-7xl mx-auto p-4 md:p-8 bg-background min-h-screen text-foreground antialiased">
+      {/* Top Header Simplificado y Profesional */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            Gestión de Categorías
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Administra y organiza las secciones de tu inventario.
+          </p>
         </div>
-
         <Button
           onClick={() => openModal()}
-          className="w-full sm:w-auto bg-primary hover:bg-[#008cc0] text-primary-foreground rounded-2xl h-14 px-8 gap-3 transition-all active:scale-95 shadow-xl shadow-primary/10 shrink-0 font-bold"
+          className="bg-foreground text-background hover:bg-foreground/90 font-medium"
         >
-          <Plus size={20} /> Nueva Categoría
+          <Plus size={16} /> Nueva Categoría
         </Button>
       </div>
 
-      {/* Tabla con Estilo Dark Card */}
-      <Card className="border border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/50 backdrop-blur-sm">
+      {/* Contenedor Principal Tabla estilo PrimeFaces (Lara/Aura) */}
+      <Card className="border border-border/80 shadow-sm rounded-lg overflow-hidden bg-card">
+        {/* Header Interno de la Tabla (Filtros Globales) */}
+        <div className="p-4 bg-muted/20 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="font-medium text-sm text-muted-foreground">
+            Total:{" "}
+            <span className="text-foreground font-semibold">
+              {filteredCategories.length}
+            </span>{" "}
+            registros
+          </div>
+          <div className="relative w-full sm:w-72">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={16}
+            />
+            <Input
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Buscar..."
+              className="pl-9 h-9 rounded-md border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-primary placeholder:text-muted-foreground/60"
+            />
+          </div>
+        </div>
+
         <CardContent className="p-0">
-          <div className="relative w-full overflow-x-auto custom-scrollbar">
-            <div className="min-w-[800px] w-full">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="py-6 pl-10 text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em] w-24">
-                      ID
-                    </TableHead>
-                    <TableHead className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">
-                      Nombre de Categoría
-                    </TableHead>
-                    <TableHead className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em]">
-                      Descripción Detallada
-                    </TableHead>
-                    <TableHead className="text-right pr-10 text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em] w-40">
-                      Acciones
-                    </TableHead>
+          <div className="w-full overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/40 border-b border-border">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="h-11 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider w-24">
+                    ID
+                  </TableHead>
+                  <TableHead className="h-11 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                    Nombre
+                  </TableHead>
+                  <TableHead className="h-11 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+                    Descripción
+                  </TableHead>
+                  <TableHead className="h-11 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider text-right w-32">
+                    Acciones
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-48 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground text-sm">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <span>Cargando datos...</span>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="py-32 text-center">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+                ) : filteredCategories.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="h-32 text-center text-sm text-muted-foreground"
+                    >
+                      No se encontraron categorías disponibles.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCategories.map((cat, index) => (
+                    <TableRow
+                      key={cat.id}
+                      className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                    >
+                      <TableCell className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                        #{String(cat.id).padStart(3, "0")}
                       </TableCell>
-                    </TableRow>
-                  ) : categories.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="py-20 text-center text-muted-foreground italic"
-                      >
-                        No hay categorías disponibles en este momento.
+                      <TableCell className="px-4 py-3 font-medium text-foreground">
+                        {cat.name}
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    categories.map((cat, i) => (
-                      <TableRow
-                        key={cat.id}
-                        className="group border-border/40 hover:bg-primary/[0.03] transition-colors"
-                      >
-                        <TableCell className="py-6 pl-10 font-mono text-muted-foreground text-xs">
-                          #{String(i + 1).padStart(2, "0")}
-                        </TableCell>
-                        <TableCell className="font-bold text-foreground">
-                          <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-border group-hover:bg-primary group-hover:scale-125 transition-all" />
-                            {cat.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          <span className="line-clamp-1 italic text-sm opacity-70">
-                            {cat.description || "Sin descripción asignada"}
+                      <TableCell className="px-4 py-3 text-sm text-muted-foreground max-w-md truncate">
+                        {cat.description || (
+                          <span className="text-muted-foreground/40 italic text-xs">
+                            Sin descripción
                           </span>
-                        </TableCell>
-                        <TableCell className="text-right pr-10">
-                          <div className="flex justify-end gap-3 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openModal(cat)}
-                              className="h-10 w-10 rounded-xl bg-secondary text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
-                            >
-                              <Pencil size={18} />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => remove(cat.id)}
-                              disabled={deletingId === cat.id}
-                              className="h-10 w-10 rounded-xl bg-secondary text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                            >
-                              {deletingId === cat.id ? (
-                                <Loader2 size={18} className="animate-spin" />
-                              ) : (
-                                <Trash2 size={18} />
-                              )}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openModal(cat)}
+                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                            title="Editar"
+                          >
+                            <Pencil size={14} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => remove(cat.id)}
+                            disabled={deletingId === cat.id}
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                            title="Eliminar"
+                          >
+                            {deletingId === cat.id ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={14} />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Modal Re-diseñado con tu Paleta Dark */}
+      {/* Modal Rediseñado: Limpio, Compacto y Elegante */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-[480px] rounded-[40px] border-border bg-card p-0 overflow-hidden ">
-          <div className="bg-gradient-to-r from-primary to-[#008cc0] p-10 text-primary-foreground relative">
-            <div className="absolute top-0 right-0 p-8 opacity-20">
-              <Layers size={60} />
-            </div>
-            <DialogTitle className="text-3xl font-bold relative z-10">
-              {editingCategory ? "Editar" : "Crear"}
+        <DialogContent className="sm:max-w-[420px] rounded-lg border-border bg-card p-0 overflow-hidden shadow-lg">
+          <DialogHeader className="p-6 pb-4 border-b border-border/60 bg-muted/20">
+            <DialogTitle className="text-lg font-semibold text-foreground">
+              {editingCategory ? "Modificar Categoría" : "Nueva Categoría"}
             </DialogTitle>
-            <DialogDescription className="text-primary-foreground/80 mt-2 font-medium relative z-10">
-              Configura los detalles de la categoría.
+            <DialogDescription className="text-xs text-muted-foreground mt-1">
+              Completa los campos requeridos para gestionar el registro.
             </DialogDescription>
-          </div>
+          </DialogHeader>
 
-          <div className="p-10 space-y-8 bg-card">
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                <Tag size={12} /> Nombre oficial
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Folder size={14} className="text-primary/70" /> Nombre oficial
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. Limpieza Industrial"
-                className="h-14 rounded-2xl bg-background border-border focus:ring-primary focus:border-primary text-foreground placeholder:text-muted-foreground/50"
+                className="h-10 rounded-md border-border bg-background px-3 text-sm focus-visible:ring-1 focus-visible:ring-primary placeholder:text-muted-foreground/40"
               />
             </div>
 
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                <AlignLeft size={12} /> Breve descripción
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <FileText size={14} className="text-primary/70" /> Descripción
               </label>
               <Input
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                placeholder="Opcional..."
-                className="h-14 rounded-2xl bg-background border-border focus:ring-primary focus:border-primary text-foreground"
+                placeholder="Detalle opcional sobre la categoría..."
+                className="h-10 rounded-md border-border bg-background px-3 text-sm focus-visible:ring-1 focus-visible:ring-primary placeholder:text-muted-foreground/40"
               />
             </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowModal(false)}
-                className="flex-1 h-14 rounded-2xl border-border bg-transparent font-bold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
-              >
-                Cerrar
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saving || !name.trim()}
-                className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-bold hover:bg-[#008cc0] transition-all shadow-lg shadow-primary/20"
-              >
-                {saving ? <Loader2 className="animate-spin" /> : "Confirmar"}
-              </Button>
-            </div>
           </div>
+
+          <DialogFooter className="p-4 bg-muted/10 border-t border-border/60 flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowModal(false)}
+              className="h-9 rounded-md border-border font-medium text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || !name.trim()}
+              className="h-9 ml-2 bg-foreground text-background hover:bg-foreground/90 font-medium"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Guardar Cambios"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
