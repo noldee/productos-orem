@@ -1,4 +1,3 @@
-// middleware.ts (raíz del proyecto Next.js)
 import { NextResponse, type NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
@@ -11,19 +10,14 @@ export function middleware(request: NextRequest) {
   const isProtected = protectedRoutes.some((r) => pathname.startsWith(r));
   const isAuthRoute = authRoutes.some((r) => pathname.startsWith(r));
 
-  // Sin token → redirige al login
   if (!token && isProtected) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Con token → no puede volver a login/register
   if (token && isAuthRoute) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // IMPORTANTE: ya NO reenviamos el token como header.
-  // La cookie httpOnly se envía automáticamente en las peticiones al backend
-  // gracias a withCredentials: true en axios.
   return NextResponse.next();
 }
 

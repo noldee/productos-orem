@@ -1,5 +1,11 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+  login as authLogin,
+  logout as authLogout,
+  getToken,
+  removeToken,
+} from "@/lib/auth";
 import { api } from "@/lib/api";
 
 type User = {
@@ -23,43 +29,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Al cargar la app, preguntamos al backend quién es el usuario actual.
-  // El backend lee la cookie httpOnly automáticamente.
-  // Así no necesitamos guardar NADA en localStorage.
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const { data } = await api.get("/users/me");
+        const token = getToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        const { data } = await api.get("/users/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setUser(data);
       } catch {
-        // No hay sesión activa → usuario no logueado
+        removeToken();
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
-
     restoreSession();
   }, []);
 
   const login = async (email: string, password: string): Promise<User> => {
-    // El backend guarda el JWT en una cookie httpOnly.
-    // El frontend solo recibe los datos del usuario (no el token).
-    const { data } = await api.post("/auth/login", { email, password });
-    setUser(data.user);
-    return data.user;
+    const { user } = await authLogin(email, password);
+    setUser(user);
+    return user;
   };
 
   const logout = async () => {
-    // Pedimos al backend que borre la cookie httpOnly
-    await api.post("/auth/logout");
+    authLogout();
     setUser(null);
   };
 
-  const isAdmin = user?.role === "ADMIN";
-
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, isAdmin: user?.role === "ADMIN", login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
